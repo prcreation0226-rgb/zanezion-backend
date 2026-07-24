@@ -36,26 +36,35 @@ export const createClient = async (req, res, next) => {
 
     const client = await clientService.createClient(clientData, req.user.id, tenantIdToUse);
 
-    // User Provisioning Logic
-    if (payload.password && client.email) {
+    // User Provisioning & Plan Sync Logic
+    if (client.email) {
       const existingUser = await prisma.user.findFirst({
         where: { email: client.email }
       });
 
       const roleId = client.clientType === 'SaaS' ? 14 : 13; // Default to SAAS_CLIENT or CUSTOMER
+      const isPaidPlan = payload.plan && payload.plan.toLowerCase() !== 'free';
 
-      if (!existingUser) {
+      if (!existingUser && payload.password) {
         await userService.createUser({
-          name: client.companyName || 'SaaS Client',
+          name: client.companyName || 'Client User',
           email: client.email,
           password: payload.password,
           roleId: roleId,
           tenantId: client.tenantId || tenantIdToUse,
+          plan: payload.plan || 'Free',
+          is_upgraded: isPaidPlan,
+          concierge_member: isPaidPlan,
+          concierge_membership_since: isPaidPlan ? new Date().toISOString().slice(0, 10) : null,
           status: 'Active'
         }, req.user.id, req.ip, req.headers['user-agent']);
-      } else {
+      } else if (existingUser) {
         await userService.updateUser(existingUser.id, {
-          password: payload.password,
+          ...(payload.password && { password: payload.password }),
+          plan: payload.plan || existingUser.plan,
+          is_upgraded: isPaidPlan,
+          concierge_member: isPaidPlan,
+          concierge_membership_since: isPaidPlan ? (existingUser.concierge_membership_since || new Date().toISOString().slice(0, 10)) : null,
           deletedAt: null,
           status: 'Active'
         }, null, req.ip, req.headers['user-agent']);
@@ -148,27 +157,36 @@ export const updateClient = async (req, res, next) => {
 
     const updatedClient = await clientService.updateClient(Number(req.params.id), clientData, tenantIdToFilter, req.user.id);
 
-    // User Provisioning Logic
-    if (payload.password && updatedClient.email) {
+    // User Provisioning & Plan Sync Logic
+    if (updatedClient.email) {
       const existingUser = await prisma.user.findFirst({
         where: { email: updatedClient.email }
       });
 
       const roleId = updatedClient.clientType === 'SaaS' ? 14 : 13; // Default to SAAS_CLIENT or CUSTOMER
+      const isPaidPlan = payload.plan && payload.plan.toLowerCase() !== 'free';
 
       if (existingUser) {
         await userService.updateUser(existingUser.id, {
-          password: payload.password,
+          ...(payload.password && { password: payload.password }),
+          plan: payload.plan !== undefined ? payload.plan : existingUser.plan,
+          is_upgraded: isPaidPlan,
+          concierge_member: isPaidPlan,
+          concierge_membership_since: isPaidPlan ? (existingUser.concierge_membership_since || new Date().toISOString().slice(0, 10)) : null,
           deletedAt: null,
           status: 'Active'
         }, null, req.ip, req.headers['user-agent']);
-      } else {
+      } else if (payload.password) {
         await userService.createUser({
-          name: updatedClient.companyName || 'SaaS Client',
+          name: updatedClient.companyName || 'Client User',
           email: updatedClient.email,
           password: payload.password,
           roleId: roleId,
           tenantId: updatedClient.tenantId || 1,
+          plan: payload.plan || 'Free',
+          is_upgraded: isPaidPlan,
+          concierge_member: isPaidPlan,
+          concierge_membership_since: isPaidPlan ? new Date().toISOString().slice(0, 10) : null,
           status: 'Active'
         }, req.user.id, req.ip, req.headers['user-agent']);
       }
