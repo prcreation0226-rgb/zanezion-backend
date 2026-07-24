@@ -101,8 +101,10 @@ export const getClients = async (req, res, next) => {
 
 export const getClientById = async (req, res, next) => {
   try {
+    const rawRole = typeof req.user.role === 'string' ? req.user.role : (req.user.role?.name || req.user.roleName || '');
+    const isSuperAdmin = String(rawRole).toUpperCase() === 'SUPER_ADMIN' || req.user.roleId === 1;
+
     let tenantIdToFilter = resolveTenantId(req);
-    const isSuperAdmin = req.user.role?.name === 'SUPER_ADMIN';
     if (isSuperAdmin) {
       tenantIdToFilter = null;
     }
@@ -116,8 +118,10 @@ export const getClientById = async (req, res, next) => {
 
 export const updateClient = async (req, res, next) => {
   try {
+    const rawRole = typeof req.user.role === 'string' ? req.user.role : (req.user.role?.name || req.user.roleName || '');
+    const isSuperAdmin = String(rawRole).toUpperCase() === 'SUPER_ADMIN' || req.user.roleId === 1;
+
     let tenantIdToFilter = resolveTenantId(req);
-    const isSuperAdmin = req.user.role?.name === 'SUPER_ADMIN';
     if (isSuperAdmin) {
       tenantIdToFilter = null;
     }
@@ -178,11 +182,13 @@ export const updateClient = async (req, res, next) => {
 
 export const deleteClient = async (req, res, next) => {
   try {
+    const rawRole = typeof req.user.role === 'string' ? req.user.role : (req.user.role?.name || req.user.roleName || '');
+    const roleName = String(rawRole).toUpperCase();
+    const isSuperAdmin = roleName === 'SUPER_ADMIN' || req.user.roleId === 1;
+
     let tenantIdToFilter = resolveTenantId(req);
-    const isSuperAdmin = req.user.role?.name === 'SUPER_ADMIN';
     if (isSuperAdmin) {
-      const checkClient = await prisma.client.findUnique({ where: { id: Number(req.params.id) }, select: { clientType: true } });
-      if (checkClient?.clientType === 'SaaS' || checkClient?.clientType === 'Business') tenantIdToFilter = null;
+      tenantIdToFilter = null;
     }
 
     await clientService.deleteClient(Number(req.params.id), tenantIdToFilter, req.user.id);
