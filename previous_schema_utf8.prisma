@@ -1,0 +1,1102 @@
+﻿generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+// ------------------------------------------------------
+// FOUNDATION TABLES (PHASE 2)
+// ------------------------------------------------------
+
+model User {
+  id        Int       @id @default(autoincrement())
+  uuid      String    @unique @default(uuid())
+  tenantId  Int?      
+  name      String
+  email     String    @unique
+  phone     String?
+  password  String
+  roleId    Int
+  avatar    String?
+  status    String    @default("active")
+  vacationBalance Int @default(0)
+  birthday          DateTime?
+  nibNumber         String?
+  employmentStatus  String?
+  hasPassport       Boolean   @default(false)
+  hasLicense        Boolean   @default(false)
+  hasNIB            Boolean   @default(false)
+  hasResume         Boolean   @default(false)
+  bankingInfo       Json?
+  lastLogin DateTime?
+  resetToken       String?
+  resetTokenExpiry DateTime?
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  deletedAt DateTime?
+
+  role            Role             @relation(fields: [roleId], references: [id])
+  userRoles       UserRole[]
+  notifications   Notification[]
+  auditLogs       AuditLog[]
+  refreshTokens   RefreshToken[]
+
+  tenant          Tenant?          @relation(fields: [tenantId], references: [id])
+  employee        Employee?
+
+  @@index([email])
+  @@index([tenantId])
+  @@index([roleId])
+  @@index([status])
+  @@map("users")
+}
+
+model RefreshToken {
+  id        Int      @id @default(autoincrement())
+  token     String   @unique
+  userId    Int
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("refresh_tokens")
+}
+
+model Role {
+  id          Int      @id @default(autoincrement())
+  name        String   @unique
+  description String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  users           User[]
+  rolePermissions RolePermission[]
+  userRoles       UserRole[]
+  roleMenus       RoleMenu[]
+
+  @@map("roles")
+}
+
+model Permission {
+  id          Int      @id @default(autoincrement())
+  name        String
+  module      String
+  action      String
+  description String?
+
+  rolePermissions RolePermission[]
+
+  @@map("permissions")
+}
+
+model RolePermission {
+  id           Int      @id @default(autoincrement())
+  roleId       Int
+  permissionId Int
+
+  role       Role       @relation(fields: [roleId], references: [id])
+  permission Permission @relation(fields: [permissionId], references: [id])
+
+  @@map("role_permissions")
+}
+
+model Menu {
+  id     Int    @id @default(autoincrement())
+  name   String
+  path   String
+  icon   String
+  module String?
+
+  roleMenus RoleMenu[]
+
+  @@map("menus")
+}
+
+model RoleMenu {
+  id         Int     @id @default(autoincrement())
+  roleId     Int
+  menuId     Int
+  can_view   Boolean @default(false)
+  can_add    Boolean @default(false)
+  can_edit   Boolean @default(false)
+  can_delete Boolean @default(false)
+
+  role Role @relation(fields: [roleId], references: [id], onDelete: Cascade)
+  menu Menu @relation(fields: [menuId], references: [id], onDelete: Cascade)
+
+  @@unique([roleId, menuId])
+  @@map("role_menus")
+}
+
+model UserRole {
+  id     Int @id @default(autoincrement())
+  userId Int
+  roleId Int
+
+  user User @relation(fields: [userId], references: [id])
+  role Role @relation(fields: [roleId], references: [id])
+
+  @@map("user_roles")
+}
+
+model Notification {
+  id        Int      @id @default(autoincrement())
+  title     String
+  message   String   @db.Text
+  type      String
+  userId    Int
+  isRead    Boolean  @default(false)
+  createdAt DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id])
+
+  @@map("notifications")
+}
+
+model AuditLog {
+  id          Int      @id @default(autoincrement())
+  module      String
+  action      String
+  description String?
+  oldValue    Json?
+  newValue    Json?
+  performedBy Int
+  timestamp   DateTime @default(now())
+
+  user User @relation(fields: [performedBy], references: [id])
+
+  @@map("audit_logs")
+}
+
+model Setting {
+  id        Int      @id @default(autoincrement())
+  key       String   @unique
+  value     String   @db.Text
+  group     String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("settings")
+}
+
+// ------------------------------------------------------
+// SUPER ADMIN TABLES (PHASE 3)
+// ------------------------------------------------------
+
+model Plan {
+  id           Int      @id @default(autoincrement())
+  name         String
+  description  String?  @db.Text
+  price        Float
+  billingCycle String   // "MONTHLY", "YEARLY"
+  maxUsers     Int
+  maxStorage   Int      // in MB or GB
+  features     Json?
+  isActive     Boolean  @default(true)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  subscriptions Subscription[]
+
+  @@map("plans")
+}
+
+model Organization {
+  id        Int      @id @default(autoincrement())
+  name      String
+  email     String   @unique
+  phone     String?
+  address   String?  @db.Text
+  country   String?
+  timezone  String?
+  status    String   @default("active")
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  tenants   Tenant[]
+
+  @@index([email])
+  @@index([status])
+  @@map("organizations")
+}
+
+model Tenant {
+  id             Int      @id @default(autoincrement())
+  organizationId Int
+  subscriptionId Int?     @unique
+  tenantCode     String   @unique
+  status         String   @default("active")
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  organization   Organization  @relation(fields: [organizationId], references: [id])
+  users          User[]
+  subscriptions  Subscription[] @relation("TenantSubscriptions")
+  activeSubscription Subscription? @relation("ActiveSubscription", fields: [subscriptionId], references: [id])
+
+  departments    Department[]
+  designations   Designation[]
+  employees      Employee[]
+  vendors        Vendor[]
+  employeeDocs   EmployeeDocument[]
+  purchaseReqs   PurchaseRequest[]
+  rfqs           RFQ[]
+  quotations     Quotation[]
+  purchaseOrders PurchaseOrder[]
+  warehouses     Warehouse[]
+  itemCategories ItemCategory[]
+  itemUnits      ItemUnit[]
+  items          Item[]
+  grns           GRN[]
+  inventoryStock InventoryStock[]
+  stockMovements StockMovement[]
+  clients        Client[]
+  clientContacts ClientContact[]
+  orders         Order[]
+  orderItems     OrderItem[]
+  deliveries     Delivery[]
+  deliveryItems  DeliveryItem[]
+  missions       Mission[]
+  proofsOfDelivery ProofOfDelivery[]
+  invoices       Invoice[]
+  invoiceItems   InvoiceItem[]
+  payments       Payment[]
+  receipts       Receipt[]
+  vehicles       Vehicle[]
+
+  @@index([organizationId])
+  @@index([subscriptionId])
+  @@index([tenantCode])
+  @@index([status])
+  @@map("tenants")
+}
+
+model Subscription {
+  id            Int      @id @default(autoincrement())
+  tenantId      Int
+  planId        Int
+  startDate     DateTime
+  endDate       DateTime
+  status        String   // "ACTIVE", "EXPIRED", "CANCELLED"
+  paymentStatus String
+  autoRenew     Boolean  @default(true)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  plan          Plan    @relation(fields: [planId], references: [id])
+  tenant        Tenant  @relation("TenantSubscriptions", fields: [tenantId], references: [id])
+  activeForTenant Tenant? @relation("ActiveSubscription")
+
+  @@index([tenantId])
+  @@index([planId])
+  @@index([status])
+  @@map("subscriptions")
+}
+
+// ------------------------------------------------------
+// ADMIN CORE MODULE (PHASE 4)
+// ------------------------------------------------------
+
+model Department {
+  id          Int      @id @default(autoincrement())
+  tenantId    Int
+  name        String
+  code        String
+  description String?  @db.Text
+  status      String   @default("active")
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  tenant       Tenant            @relation(fields: [tenantId], references: [id])
+  designations Designation[]
+  employees    Employee[]
+  purchaseReqs PurchaseRequest[]
+
+  @@index([tenantId])
+  @@index([code])
+  @@index([status])
+  @@map("departments")
+}
+
+model Designation {
+  id           Int      @id @default(autoincrement())
+  tenantId     Int
+  departmentId Int
+  name         String
+  description  String?  @db.Text
+  status       String   @default("active")
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  tenant     Tenant     @relation(fields: [tenantId], references: [id])
+  department Department @relation(fields: [departmentId], references: [id])
+  employees  Employee[]
+
+  @@index([tenantId])
+  @@index([departmentId])
+  @@index([status])
+  @@map("designations")
+}
+
+model Employee {
+  id            Int      @id @default(autoincrement())
+  tenantId      Int
+  userId        Int      @unique
+  employeeCode  String
+  firstName     String
+  lastName      String
+  phone         String?
+  departmentId  Int
+  designationId Int
+  joiningDate   DateTime
+  vehicleType   String?
+  vehiclePlate  String?
+  vehicleModel  String?
+  status        String   @default("active")
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  tenant      Tenant             @relation(fields: [tenantId], references: [id])
+  user        User               @relation(fields: [userId], references: [id])
+  department  Department         @relation(fields: [departmentId], references: [id])
+  designation Designation        @relation(fields: [designationId], references: [id])
+  documents   EmployeeDocument[]
+  purchaseReqs PurchaseRequest[]
+  managedWarehouses Warehouse[]    @relation("WarehouseManager")
+  grnsReceived      GRN[]          @relation("GRNReceiver")
+  ordersCreated     Order[]        @relation("OrderCreator")
+  assignedDeliveries Delivery[]    @relation("DeliveryAssignee")
+  assignedMissions  Mission[]      @relation("MissionAssignee")
+
+  @@index([tenantId])
+  @@index([employeeCode])
+  @@index([departmentId])
+  @@index([designationId])
+  @@index([status])
+  @@map("employees")
+}
+
+model Vendor {
+  id            Int      @id @default(autoincrement())
+  tenantId      Int
+  vendorCode    String
+  companyName   String
+  contactPerson String?
+  email         String
+  phone         String?
+  address       String?  @db.Text
+  status        String   @default("active")
+  category      String?
+  rating        Int?     @default(90)
+  delivery      Int?     @default(90)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  tenant Tenant @relation(fields: [tenantId], references: [id])
+  rfqs           RFQ[]
+  quotations     Quotation[]
+  purchaseOrders PurchaseOrder[]
+  grns           GRN[]
+
+  @@index([tenantId])
+  @@index([vendorCode])
+  @@index([status])
+  @@map("vendors")
+}
+
+model EmployeeDocument {
+  id                 Int      @id @default(autoincrement())
+  tenantId           Int
+  employeeId         Int
+  documentType       String
+  documentNumber     String?
+  filePath           String
+  verificationStatus String   @default("pending") // pending, verified, rejected
+  verifiedBy         Int?
+  verifiedAt         DateTime?
+  expiryDate         DateTime?
+  createdAt          DateTime @default(now())
+  updatedAt          DateTime @updatedAt
+
+  tenant   Tenant   @relation(fields: [tenantId], references: [id])
+  employee Employee @relation(fields: [employeeId], references: [id])
+
+  @@index([tenantId])
+  @@index([employeeId])
+  @@index([verificationStatus])
+  @@map("employee_documents")
+}
+
+// ------------------------------------------------------
+// PROCUREMENT MODULE (PHASE 5)
+// ------------------------------------------------------
+
+model PurchaseRequest {
+  id           Int      @id @default(autoincrement())
+  tenantId     Int
+  prNumber     String
+  title        String
+  description  String?  @db.Text
+  departmentId Int
+  requestedBy  Int
+  status       String   @default("draft") // draft, submitted, department_approved, procurement_review, approved, rejected, cancelled
+  priority     String   @default("medium") // low, medium, high, urgent
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  tenant       Tenant                @relation(fields: [tenantId], references: [id])
+  department   Department            @relation(fields: [departmentId], references: [id])
+  requester    Employee              @relation(fields: [requestedBy], references: [id])
+  items        PurchaseRequestItem[]
+  rfqs         RFQ[]
+  purchaseOrders PurchaseOrder[]
+
+  @@index([tenantId])
+  @@index([prNumber])
+  @@index([status])
+  @@index([departmentId])
+  @@index([requestedBy])
+  @@map("purchase_requests")
+}
+
+model PurchaseRequestItem {
+  id                Int      @id @default(autoincrement())
+  purchaseRequestId Int
+  itemName          String
+  description       String?  @db.Text
+  quantity          Float
+  unit              String   // e.g., kg, pieces, boxes
+  estimatedCost     Float?
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+
+  purchaseRequest PurchaseRequest @relation(fields: [purchaseRequestId], references: [id], onDelete: Cascade)
+
+  @@index([purchaseRequestId])
+  @@map("purchase_request_items")
+}
+
+model RFQ {
+  id                Int      @id @default(autoincrement())
+  tenantId          Int
+  rfqNumber         String
+  purchaseRequestId Int
+  vendorId          Int
+  status            String   @default("sent") // sent, received, closed
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+
+  tenant          Tenant          @relation(fields: [tenantId], references: [id])
+  purchaseRequest PurchaseRequest @relation(fields: [purchaseRequestId], references: [id])
+  vendor          Vendor          @relation(fields: [vendorId], references: [id])
+  quotations      Quotation[]
+
+  @@index([tenantId])
+  @@index([rfqNumber])
+  @@index([purchaseRequestId])
+  @@index([vendorId])
+  @@index([status])
+  @@map("rfqs")
+}
+
+model Quotation {
+  id          Int      @id @default(autoincrement())
+  tenantId    Int
+  rfqId       Int
+  vendorId    Int
+  amount      Float
+  remarks     String?  @db.Text
+  status      String   @default("pending") // pending, approved, rejected
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  tenant   Tenant          @relation(fields: [tenantId], references: [id])
+  rfq      RFQ             @relation(fields: [rfqId], references: [id], onDelete: Cascade)
+  vendor   Vendor          @relation(fields: [vendorId], references: [id])
+  purchaseOrders PurchaseOrder[]
+
+  @@index([tenantId])
+  @@index([rfqId])
+  @@index([vendorId])
+  @@index([status])
+  @@map("quotations")
+}
+
+model PurchaseOrder {
+  id                Int      @id @default(autoincrement())
+  tenantId          Int
+  poNumber          String
+  vendorId          Int
+  purchaseRequestId Int
+  quotationId       Int?
+  totalAmount       Float
+  status            String   @default("draft") // draft, approved, rejected, cancelled, waiting_for_delivery
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+
+  tenant          Tenant          @relation(fields: [tenantId], references: [id])
+  vendor          Vendor          @relation(fields: [vendorId], references: [id])
+  purchaseRequest PurchaseRequest @relation(fields: [purchaseRequestId], references: [id])
+  quotation       Quotation?      @relation(fields: [quotationId], references: [id])
+  grns            GRN[]
+
+  @@index([tenantId])
+  @@index([poNumber])
+  @@index([vendorId])
+  @@index([purchaseRequestId])
+  @@index([status])
+  @@map("purchase_orders")
+}
+
+// ------------------------------------------------------
+// INVENTORY MODULE (PHASE 6)
+// ------------------------------------------------------
+
+model ItemCategory {
+  id          Int      @id @default(autoincrement())
+  tenantId    Int
+  name        String
+  description String?  @db.Text
+  status      String   @default("active")
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  tenant Tenant @relation(fields: [tenantId], references: [id])
+  items  Item[]
+
+  @@index([tenantId])
+  @@map("item_categories")
+}
+
+model ItemUnit {
+  id        Int      @id @default(autoincrement())
+  tenantId  Int
+  name      String   // e.g., Kilogram, Piece
+  shortName String   // e.g., kg, pc
+  status    String   @default("active")
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  tenant Tenant @relation(fields: [tenantId], references: [id])
+  items  Item[]
+
+  @@index([tenantId])
+  @@map("item_units")
+}
+
+model Item {
+  id           Int      @id @default(autoincrement())
+  tenantId     Int
+  categoryId   Int
+  unitId       Int
+  sku          String
+  name         String
+  description  String?  @db.Text
+  reorderLevel Float    @default(0)
+  inventoryType String   @default("INTERNAL") // INTERNAL, MARKETPLACE
+  status       String   @default("active")
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  tenant         Tenant           @relation(fields: [tenantId], references: [id])
+  category       ItemCategory     @relation(fields: [categoryId], references: [id])
+  unit           ItemUnit         @relation(fields: [unitId], references: [id])
+  grnItems       GRNItem[]
+  inventoryStock InventoryStock[]
+  stockMovements StockMovement[]
+  orderItems     OrderItem[]
+  deliveryItems  DeliveryItem[]
+  invoiceItems   InvoiceItem[]
+
+  @@index([tenantId])
+  @@index([categoryId])
+  @@index([unitId])
+  @@index([sku])
+  @@map("items")
+}
+
+model Warehouse {
+  id          Int      @id @default(autoincrement())
+  tenantId    Int
+  name        String
+  location    String?  @db.Text
+  capacity    Int?     @default(0)
+  managerId   Int?
+  status      String   @default("active")
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  tenant         Tenant           @relation(fields: [tenantId], references: [id])
+  manager        Employee?        @relation("WarehouseManager", fields: [managerId], references: [id])
+  grns           GRN[]
+  inventoryStock InventoryStock[]
+  stockMovements StockMovement[]
+  deliveries     Delivery[]
+
+  @@index([tenantId])
+  @@index([managerId])
+  @@map("warehouses")
+}
+
+model GRN {
+  id              Int      @id @default(autoincrement())
+  tenantId        Int
+  grnNumber       String
+  purchaseOrderId Int
+  vendorId        Int
+  warehouseId     Int
+  receivedById    Int
+  deliveryChallan String?
+  remarks         String?  @db.Text
+  status          String   @default("draft") // draft, approved, rejected
+  receivedDate    DateTime @default(now())
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  tenant        Tenant          @relation(fields: [tenantId], references: [id])
+  purchaseOrder PurchaseOrder   @relation(fields: [purchaseOrderId], references: [id])
+  vendor        Vendor          @relation(fields: [vendorId], references: [id])
+  warehouse     Warehouse       @relation(fields: [warehouseId], references: [id])
+  receiver      Employee        @relation("GRNReceiver", fields: [receivedById], references: [id])
+  items         GRNItem[]
+  stockMovements StockMovement[]
+
+  @@index([tenantId])
+  @@index([grnNumber])
+  @@index([purchaseOrderId])
+  @@index([vendorId])
+  @@index([warehouseId])
+  @@index([status])
+  @@map("grns")
+}
+
+model GRNItem {
+  id               Int      @id @default(autoincrement())
+  grnId            Int
+  itemId           Int
+  orderedQuantity  Float
+  receivedQuantity Float
+  acceptedQuantity Float
+  rejectedQuantity Float    @default(0)
+  unitPrice        Float
+  totalPrice       Float
+  remarks          String?  @db.Text
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+
+  grn  GRN  @relation(fields: [grnId], references: [id], onDelete: Cascade)
+  item Item @relation(fields: [itemId], references: [id])
+
+  @@index([grnId])
+  @@index([itemId])
+  @@map("grn_items")
+}
+
+model InventoryStock {
+  id               Int      @id @default(autoincrement())
+  tenantId         Int
+  warehouseId      Int
+  itemId           Int
+  stockType        String   @default("INTERNAL") // INTERNAL, MARKETPLACE
+  quantity         Float    @default(0)
+  reservedQuantity Float    @default(0) // Added in Phase 7
+  lastUpdated      DateTime @default(now()) @updatedAt
+
+  tenant    Tenant    @relation(fields: [tenantId], references: [id])
+  warehouse Warehouse @relation(fields: [warehouseId], references: [id])
+  item      Item      @relation(fields: [itemId], references: [id])
+
+  @@unique([warehouseId, itemId])
+  @@index([tenantId])
+  @@map("inventory_stock")
+}
+
+model StockMovement {
+  id              Int      @id @default(autoincrement())
+  tenantId        Int
+  warehouseId     Int
+  itemId          Int
+  movementType    String   // IN, OUT, TRANSFER, ADJUSTMENT
+  quantity        Float
+  referenceType   String   // GRN, MANUAL, TRANSFER
+  referenceId     Int?     // ID of GRN or other reference
+  remarks         String?  @db.Text
+  createdAt       DateTime @default(now())
+
+  tenant    Tenant    @relation(fields: [tenantId], references: [id])
+  warehouse Warehouse @relation(fields: [warehouseId], references: [id])
+  item      Item      @relation(fields: [itemId], references: [id])
+  grn       GRN?      @relation(fields: [referenceId], references: [id], map: "stock_movement_grn_fk")
+
+  @@index([tenantId])
+  @@index([warehouseId])
+  @@index([itemId])
+  @@index([movementType])
+  @@map("stock_movements")
+}
+
+// ------------------------------------------------------
+// CLIENTS & ORDERS MODULE (PHASE 7)
+// ------------------------------------------------------
+
+model Client {
+  id            Int      @id @default(autoincrement())
+  tenantId      Int
+  clientCode    String   @unique
+  companyName   String
+  contactPerson String
+  email         String
+  phone         String
+  address       String?  @db.Text
+  city          String?
+  country       String?
+  status        String   @default("active")
+  clientType    String?
+  billingCycle  String?
+  paymentMethod String?
+  plan          String?
+  logoUrl       String?  @db.Text
+  source        String?
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  tenant   Tenant          @relation(fields: [tenantId], references: [id])
+  contacts ClientContact[]
+  orders   Order[]
+  deliveries Delivery[]
+  invoices   Invoice[]
+
+  @@index([tenantId])
+  @@index([clientCode])
+  @@map("clients")
+}
+
+model ClientContact {
+  id          Int      @id @default(autoincrement())
+  tenantId    Int
+  clientId    Int
+  name        String
+  designation String?
+  email       String?
+  phone       String?
+  isPrimary   Boolean  @default(false)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  tenant Tenant @relation(fields: [tenantId], references: [id])
+  client Client @relation(fields: [clientId], references: [id], onDelete: Cascade)
+
+  @@index([tenantId])
+  @@index([clientId])
+  @@map("client_contacts")
+}
+
+model Order {
+  id          Int      @id @default(autoincrement())
+  tenantId    Int
+  orderNumber String
+  clientId    Int
+  createdById Int
+  status      String   @default("draft") // draft, submitted, review, approved, ready_for_delivery, rejected, cancelled
+  priority    String   @default("normal") // normal, high, urgent
+  orderType   String   @default("PRODUCT") // PRODUCT, CHAUFFEUR, CONCIERGE
+  metadata    Json?
+  totalAmount Float    @default(0)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  tenant    Tenant      @relation(fields: [tenantId], references: [id])
+  client    Client      @relation(fields: [clientId], references: [id])
+  creator   Employee    @relation("OrderCreator", fields: [createdById], references: [id])
+  items     OrderItem[]
+  deliveries Delivery[]
+  missions   Mission[]
+  invoices   Invoice[]
+
+  @@index([tenantId])
+  @@index([orderNumber])
+  @@index([clientId])
+  @@index([status])
+  @@map("orders")
+}
+
+model OrderItem {
+  id          Int      @id @default(autoincrement())
+  tenantId    Int
+  orderId     Int
+  itemId      Int
+  warehouseId Int
+  quantity    Float
+  unitPrice   Float
+  totalPrice  Float
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  tenant Tenant @relation(fields: [tenantId], references: [id])
+  order  Order  @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  item   Item   @relation(fields: [itemId], references: [id])
+  deliveryItems DeliveryItem[]
+
+  @@index([tenantId])
+  @@index([orderId])
+  @@index([itemId])
+  @@index([warehouseId])
+  @@map("order_items")
+}
+
+// ------------------------------------------------------
+// DELIVERY, LOGISTICS & MISSION MODULE (PHASE 8)
+// ------------------------------------------------------
+
+model Delivery {
+  id             Int      @id @default(autoincrement())
+  tenantId       Int
+  deliveryNumber String
+  orderId        Int
+  clientId       Int
+  assignedTo     Int?
+  warehouseId    Int
+  status         String   @default("pending") // pending, assigned, dispatched, in_transit, delivered, failed, cancelled
+  dispatchDate   DateTime?
+  deliveryDate   DateTime?
+  remarks        String?  @db.Text
+  missionType    String   @default("Delivery")
+  transportMode  String   @default("Road")
+  vehicleRef     String?
+  etaSchedule    DateTime?
+  requestDate    DateTime?
+  dueDate        DateTime?
+  pickupLocation String?
+  dropLocation   String?
+  routeDistance  Float?
+  staffPayRate   Float?
+  deliveryFee    Float?
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  tenant     Tenant        @relation(fields: [tenantId], references: [id])
+  order      Order         @relation(fields: [orderId], references: [id])
+  client     Client        @relation(fields: [clientId], references: [id])
+  assignee   Employee?     @relation("DeliveryAssignee", fields: [assignedTo], references: [id])
+  warehouse  Warehouse     @relation(fields: [warehouseId], references: [id])
+  items      DeliveryItem[]
+  missions   Mission[]
+  proofs     ProofOfDelivery[]
+  invoices   Invoice[]
+
+  @@index([tenantId])
+  @@index([deliveryNumber])
+  @@index([orderId])
+  @@index([clientId])
+  @@index([assignedTo])
+  @@index([warehouseId])
+  @@index([status])
+  @@map("deliveries")
+}
+
+model DeliveryItem {
+  id          Int      @id @default(autoincrement())
+  tenantId    Int
+  deliveryId  Int
+  orderItemId Int
+  itemId      Int
+  quantity    Float
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  tenant    Tenant    @relation(fields: [tenantId], references: [id])
+  delivery  Delivery  @relation(fields: [deliveryId], references: [id], onDelete: Cascade)
+  orderItem OrderItem @relation(fields: [orderItemId], references: [id])
+  item      Item      @relation(fields: [itemId], references: [id])
+
+  @@index([tenantId])
+  @@index([deliveryId])
+  @@index([orderItemId])
+  @@index([itemId])
+  @@map("delivery_items")
+}
+
+model Mission {
+  id                 Int      @id @default(autoincrement())
+  tenantId           Int
+  missionNumber      String
+  missionType        String   @default("DELIVERY") // DELIVERY, LOGISTICS, CHAUFFEUR
+  deliveryId         Int?
+  orderId            Int?
+  assignedEmployeeId Int
+  startDate          DateTime?
+  endDate            DateTime?
+  status             String   @default("assigned") // assigned, in_progress, completed, cancelled
+  metadata           Json?
+  remarks            String?  @db.Text
+  createdAt          DateTime @default(now())
+  updatedAt          DateTime @updatedAt
+
+  tenant   Tenant    @relation(fields: [tenantId], references: [id])
+  delivery Delivery?  @relation(fields: [deliveryId], references: [id], onDelete: Cascade)
+  order    Order?     @relation(fields: [orderId], references: [id])
+  assignee Employee  @relation("MissionAssignee", fields: [assignedEmployeeId], references: [id])
+
+  @@index([tenantId])
+  @@index([missionNumber])
+  @@index([deliveryId])
+  @@index([assignedEmployeeId])
+  @@index([status])
+  @@map("missions")
+}
+
+model ProofOfDelivery {
+  id                Int      @id @default(autoincrement())
+  tenantId          Int
+  deliveryId        Int
+  receiverName      String
+  receiverPhone     String?
+  receiverSignature String?  @db.Text // Can be URL or Base64
+  deliveryPhoto     String?  @db.Text // Can be URL
+  remarks           String?  @db.Text
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+
+  tenant   Tenant   @relation(fields: [tenantId], references: [id])
+  delivery Delivery @relation(fields: [deliveryId], references: [id], onDelete: Cascade)
+
+  @@index([tenantId])
+  @@index([deliveryId])
+  @@map("proof_of_delivery")
+}
+
+// ------------------------------------------------------
+// FINANCE, INVOICES & PAYMENTS MODULE (PHASE 9)
+// ------------------------------------------------------
+
+model Invoice {
+  id             Int      @id @default(autoincrement())
+  tenantId       Int
+  invoiceNumber  String
+  clientId       Int
+  orderId        Int
+  deliveryId     Int
+  invoiceDate    DateTime
+  dueDate        DateTime
+  subtotal       Float    @default(0)
+  taxAmount      Float    @default(0)
+  discountAmount Float    @default(0)
+  totalAmount    Float    @default(0)
+  status         String   @default("draft") // draft, generated, approved, sent, partially_paid, paid, cancelled
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  tenant   Tenant        @relation(fields: [tenantId], references: [id])
+  client   Client        @relation(fields: [clientId], references: [id])
+  order    Order         @relation(fields: [orderId], references: [id])
+  delivery Delivery      @relation(fields: [deliveryId], references: [id])
+  items    InvoiceItem[]
+  payments Payment[]
+
+  @@index([tenantId])
+  @@index([invoiceNumber])
+  @@index([clientId])
+  @@index([orderId])
+  @@index([deliveryId])
+  @@index([status])
+  @@index([dueDate])
+  @@map("invoices")
+}
+
+model InvoiceItem {
+  id         Int      @id @default(autoincrement())
+  tenantId   Int
+  invoiceId  Int
+  itemId     Int
+  quantity   Float
+  unitPrice  Float
+  tax        Float    @default(0)
+  discount   Float    @default(0)
+  total      Float
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  tenant  Tenant  @relation(fields: [tenantId], references: [id])
+  invoice Invoice @relation(fields: [invoiceId], references: [id], onDelete: Cascade)
+  item    Item    @relation(fields: [itemId], references: [id])
+
+  @@index([tenantId])
+  @@index([invoiceId])
+  @@index([itemId])
+  @@map("invoice_items")
+}
+
+model Payment {
+  id              Int      @id @default(autoincrement())
+  tenantId        Int
+  invoiceId       Int
+  paymentDate     DateTime
+  paymentMethod   String   // cash, bank_transfer, cheque, credit_card
+  referenceNumber String?
+  amount          Float
+  remarks         String?  @db.Text
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  tenant   Tenant   @relation(fields: [tenantId], references: [id])
+  invoice  Invoice  @relation(fields: [invoiceId], references: [id])
+  receipts Receipt[]
+
+  @@index([tenantId])
+  @@index([invoiceId])
+  @@index([referenceNumber])
+  @@index([paymentMethod])
+  @@map("payments")
+}
+
+model Receipt {
+  id            Int      @id @default(autoincrement())
+  tenantId      Int
+  receiptNumber String
+  paymentId     Int
+  receiptDate   DateTime
+  amount        Float
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  tenant  Tenant  @relation(fields: [tenantId], references: [id])
+  payment Payment @relation(fields: [paymentId], references: [id], onDelete: Cascade)
+
+  @@index([tenantId])
+  @@index([receiptNumber])
+  @@index([paymentId])
+  @@map("receipts")
+}
+
+// ------------------------------------------------------
+// FLEET / VEHICLES
+// ------------------------------------------------------
+
+model Vehicle {
+  id                 Int      @id @default(autoincrement())
+  vehicleId          String   // e.g. FLT-001  (tenant-scoped unique)
+  type               String   @default("Luxury Truck")
+  model              String
+  capacity           String?
+  fuel               String?
+  status             String   @default("Active")
+  location           String?
+  insurancePolicy    String?
+  registrationExpiry String?
+  inspectionDate     String?
+  diagnosticStatus   String?
+  tenantId           Int?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  tenant Tenant? @relation(fields: [tenantId], references: [id])
+
+  @@unique([vehicleId, tenantId])
+  @@index([tenantId])
+  @@map("vehicles")
+}

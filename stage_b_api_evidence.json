@@ -1,0 +1,53 @@
+{
+  "rfqs": {
+    "get": {
+      "success": true,
+      "message": "RFQs fetched successfully",
+      "data": {
+        "rfqs": [],
+        "total": 0,
+        "page": 1,
+        "totalPages": 0
+      }
+    },
+    "postValidation": {
+      "success": false,
+      "message": "Validation Error: [\n  {\n    \"expected\": \"number\",\n    \"code\": \"invalid_type\",\n    \"path\": [\n      \"purchaseRequestId\"\n    ],\n    \"message\": \"Invalid input: expected number, received undefined\"\n  },\n  {\n    \"expected\": \"number\",\n    \"code\": \"invalid_type\",\n    \"path\": [\n      \"vendorId\"\n    ],\n    \"message\": \"Invalid input: expected number, received undefined\"\n  }\n]",
+      "data": null
+    }
+  },
+  "quotations": {
+    "get": {
+      "success": true,
+      "message": "Quotations fetched successfully",
+      "data": {
+        "quotations": [],
+        "total": 0,
+        "page": 1,
+        "totalPages": 0
+      }
+    },
+    "postValidation": {
+      "success": false,
+      "message": "Validation Error: [\n  {\n    \"expected\": \"number\",\n    \"code\": \"invalid_type\",\n    \"path\": [\n      \"rfqId\"\n    ],\n    \"message\": \"Invalid input: expected number, received undefined\"\n  },\n  {\n    \"expected\": \"number\",\n    \"code\": \"invalid_type\",\n    \"path\": [\n      \"vendorId\"\n    ],\n    \"message\": \"Invalid input: expected number, received undefined\"\n  },\n  {\n    \"expected\": \"number\",\n    \"code\": \"invalid_type\",\n    \"path\": [\n      \"amount\"\n    ],\n    \"message\": \"Invalid input: expected number, received undefined\"\n  }\n]",
+      "data": null
+    }
+  },
+  "purchaseOrders": {
+    "get": {
+      "success": true,
+      "message": "Purchase Orders fetched successfully",
+      "data": {
+        "purchaseOrders": [],
+        "total": 0,
+        "page": 1,
+        "totalPages": 0
+      }
+    },
+    "postValidation": {
+      "success": false,
+      "message": "Validation Error: [\n  {\n    \"expected\": \"number\",\n    \"code\": \"invalid_type\",\n    \"path\": [\n      \"vendorId\"\n    ],\n    \"message\": \"Invalid input: expected number, received undefined\"\n  },\n  {\n    \"expected\": \"number\",\n    \"code\": \"invalid_type\",\n    \"path\": [\n      \"purchaseRequestId\"\n    ],\n    \"message\": \"Invalid input: expected number, received undefined\"\n  },\n  {\n    \"expected\": \"number\",\n    \"code\": \"invalid_type\",\n    \"path\": [\n      \"totalAmount\"\n    ],\n    \"message\": \"Invalid input: expected number, received undefined\"\n  }\n]",
+      "data": null
+    }
+  }
+}

@@ -1,0 +1,206 @@
+{
+  "createPayload": {
+    "title": "UI Validation PR",
+    "departmentId": 1,
+    "priority": "medium",
+    "items": [
+      {
+        "itemName": "Validation Asset",
+        "quantity": 10,
+        "unit": "Boxes",
+        "estimatedCost": 50
+      }
+    ]
+  },
+  "createResponse": {
+    "success": true,
+    "message": "Purchase Request created successfully",
+    "data": {
+      "id": 5,
+      "tenantId": 1,
+      "prNumber": "PR-2026-0005",
+      "title": "UI Validation PR",
+      "description": null,
+      "departmentId": 1,
+      "requestedBy": 1,
+      "status": "draft",
+      "priority": "medium",
+      "createdAt": "2026-06-05T12:46:17.046Z",
+      "updatedAt": "2026-06-05T12:46:17.046Z",
+      "items": [
+        {
+          "id": 5,
+          "purchaseRequestId": 5,
+          "itemName": "Validation Asset",
+          "description": null,
+          "quantity": 10,
+          "unit": "Boxes",
+          "estimatedCost": 50,
+          "createdAt": "2026-06-05T12:46:17.046Z",
+          "updatedAt": "2026-06-05T12:46:17.046Z"
+        }
+      ]
+    }
+  },
+  "dbInsert": {
+    "id": 5,
+    "tenantId": 1,
+    "prNumber": "PR-2026-0005",
+    "title": "UI Validation PR",
+    "description": null,
+    "departmentId": 1,
+    "requestedBy": 1,
+    "status": "draft",
+    "priority": "medium",
+    "createdAt": "2026-06-05T12:46:17.046Z",
+    "updatedAt": "2026-06-05T12:46:17.046Z",
+    "items": [
+      {
+        "id": 5,
+        "purchaseRequestId": 5,
+        "itemName": "Validation Asset",
+        "description": null,
+        "quantity": 10,
+        "unit": "Boxes",
+        "estimatedCost": 50,
+        "createdAt": "2026-06-05T12:46:17.046Z",
+        "updatedAt": "2026-06-05T12:46:17.046Z"
+      }
+    ],
+    "department": {
+      "id": 1,
+      "tenantId": 1,
+      "name": "Operations",
+      "code": "OPS",
+      "description": "Core business operations and mission control.",
+      "status": "active",
+      "createdAt": "2026-06-05T12:26:40.207Z",
+      "updatedAt": "2026-06-05T12:26:40.207Z"
+    },
+    "requester": {
+      "id": 1,
+      "tenantId": 1,
+      "userId": 2,
+      "employeeCode": "EMP-ADMIN",
+      "firstName": "Admin",
+      "lastName": "User",
+      "phone": null,
+      "departmentId": 1,
+      "designationId": 1,
+      "joiningDate": "2026-06-05T12:37:08.605Z",
+      "vehicleType": null,
+      "vehiclePlate": null,
+      "vehicleModel": null,
+      "status": "active",
+      "createdAt": "2026-06-05T12:37:08.617Z",
+      "updatedAt": "2026-06-05T12:37:08.617Z"
+    }
+  },
+  "readResponse": {
+    "success": true,
+    "message": "Purchase Request fetched successfully",
+    "data": {
+      "id": 5,
+      "tenantId": 1,
+      "prNumber": "PR-2026-0005",
+      "title": "UI Validation PR",
+      "description": null,
+      "departmentId": 1,
+      "requestedBy": 1,
+      "status": "draft",
+      "priority": "medium",
+      "createdAt": "2026-06-05T12:46:17.046Z",
+      "updatedAt": "2026-06-05T12:46:17.046Z",
+      "items": [
+        {
+          "id": 5,
+          "purchaseRequestId": 5,
+          "itemName": "Validation Asset",
+          "description": null,
+          "quantity": 10,
+          "unit": "Boxes",
+          "estimatedCost": 50,
+          "createdAt": "2026-06-05T12:46:17.046Z",
+          "updatedAt": "2026-06-05T12:46:17.046Z"
+        }
+      ],
+      "department": {
+        "id": 1,
+        "tenantId": 1,
+        "name": "Operations",
+        "code": "OPS",
+        "description": "Core business operations and mission control.",
+        "status": "active",
+        "createdAt": "2026-06-05T12:26:40.207Z",
+        "updatedAt": "2026-06-05T12:26:40.207Z"
+      },
+      "requester": {
+        "id": 1,
+        "firstName": "Admin",
+        "lastName": "User",
+        "employeeCode": "EMP-ADMIN"
+      }
+    }
+  },
+  "updateResponse": {
+    "success": true,
+    "message": "Purchase Request updated successfully",
+    "data": {
+      "id": 5,
+      "tenantId": 1,
+      "prNumber": "PR-2026-0005",
+      "title": "UI Validation PR - Updated",
+      "description": null,
+      "departmentId": 1,
+      "requestedBy": 1,
+      "status": "draft",
+      "priority": "high",
+      "createdAt": "2026-06-05T12:46:17.046Z",
+      "updatedAt": "2026-06-05T12:46:17.549Z",
+      "items": [
+        {
+          "id": 6,
+          "purchaseRequestId": 5,
+          "itemName": "Validation Asset Updated",
+          "description": null,
+          "quantity": 20,
+          "unit": "Boxes",
+          "estimatedCost": 75,
+          "createdAt": "2026-06-05T12:46:17.549Z",
+          "updatedAt": "2026-06-05T12:46:17.549Z"
+        }
+      ]
+    }
+  },
+  "dbUpdate": {
+    "id": 5,
+    "tenantId": 1,
+    "prNumber": "PR-2026-0005",
+    "title": "UI Validation PR - Updated",
+    "description": null,
+    "departmentId": 1,
+    "requestedBy": 1,
+    "status": "draft",
+    "priority": "high",
+    "createdAt": "2026-06-05T12:46:17.046Z",
+    "updatedAt": "2026-06-05T12:46:17.549Z",
+    "items": [
+      {
+        "id": 6,
+        "purchaseRequestId": 5,
+        "itemName": "Validation Asset Updated",
+        "description": null,
+        "quantity": 20,
+        "unit": "Boxes",
+        "estimatedCost": 75,
+        "createdAt": "2026-06-05T12:46:17.549Z",
+        "updatedAt": "2026-06-05T12:46:17.549Z"
+      }
+    ]
+  },
+  "deleteResponse": {
+    "status": 200,
+    "ok": true
+  },
+  "dbDelete": null
+}

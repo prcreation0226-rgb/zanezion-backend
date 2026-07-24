@@ -1,0 +1,2226 @@
+[
+  {
+    "id": 1,
+    "roleId": 1,
+    "menuId": 1,
+    "can_view": true,
+    "can_add": true,
+    "can_edit": true,
+    "can_delete": true,
+    "role": {
+      "name": "SUPER_ADMIN"
+    },
+    "menu": {
+      "name": "Dashboard",
+      "module": "Core"
+    }
+  },
+  {
+    "id": 2,
+    "roleId": 1,
+    "menuId": 2,
+    "can_view": true,
+    "can_add": true,
+    "can_edit": true,
+    "can_delete": true,
+    "role": {
+      "name": "SUPER_ADMIN"
+    },
+    "menu": {
+      "name": "Analytics",
+      "module": "Core"
+    }
+  },
+  {
+    "id": 3,
+    "roleId": 1,
+    "menuId": 3,
+    "can_view": true,
+    "can_add": true,
+    "can_edit": true,
+    "can_delete": true,
+    "role": {
+      "name": "SUPER_ADMIN"
+    },
+    "menu": {
+      "name": "Clients",
+      "module": "CRM"
+    }
+  },
+  {
+    "id": 4,
+    "roleId": 1,
+    "menuId": 4,
+    "can_view": true,
+    "can_add": true,
+    "can_edit": true,
+    "can_delete": true,
+    "role": {
+      "name": "SUPER_ADMIN"
+    },
+    "menu": {
+      "name": "Vendors",
+      "module": "Procurement"
+    }
+  },
+  {
+    "id": 5,
+    "roleId": 1,
+    "menuId": 5,
+    "can_view": true,
+    "can_add": true,
+    "can_edit": true,
+    "can_delete": true,
+    "role": {
+      "name": "SUPER_ADMIN"
+    },
+    "menu": {
+      "name": "Personnel",
+      "module": "HR"
+    }
+  },
+  {
+    "id": 6,
+    "roleId": 1,
+    "menuId": 6,
+    "can_view": true,
+    "can_add": true,
+    "can_edit": true,
+    "can_delete": true,
+    "role": {
+      "name": "SUPER_ADMIN"
+    },
+    "menu": {
+      "name": "Audit Log",
+      "module": "System"
+    }
+  },
+  {
+    "id": 7,
+    "roleId": 1,
+    "menuId": 7,
+    "can_view": true,
+    "can_add": true,
+    "can_edit": true,
+    "can_delete": true,
+    "role": {
+      "name": "SUPER_ADMIN"
+    },
+    "menu": {
+      "name": "Plans",
+      "module": "Settings"
+    }
+  },
+  {
+    "id": 8,
+    "roleId": 1,
+    "menuId": 8,
+    "can_view": true,
+    "can_add": true,
+    "can_edit": true,
+    "can_delete": true,
+    "role": {
+      "name": "SUPER_ADMIN"
+    },
+    "menu": {
+      "name": "Settings",
+      "module": "Settings"
+    }
+  },
+  {
+    "id": 9,
+    "roleId": 1,
+    "menuId": 9,
+    "can_view": true,
+    "can_add": true,
+    "can_edit": true,
+    "can_delete": true,
+    "role": {
+      "name": "SUPER_ADMIN"
+    },
+    "menu": {
+      "name": "Security",
+      "module": "Settings"
+    }
+  },
+  {
+    "id": 10,
+    "roleId": 1,
+    "menuId": 10,
+    "can_view": true,
+    "can_add": true,
+    "can_edit": true,
+    "can_delete": true,
+    "role": {
+      "name": "SUPER_ADMIN"
+    },
+    "menu": {
+      "name": "Projects",
+      "module": "Operations"
+    }
+  },
+  {
+    "id": 11,
+    "roleId": 1,
+    "menuId": 11,
+    "can_view": true,
+    "can_add": true,
+    "can_edit": true,
+    "can_delete": true,
+    "role": {
+      "name": "SUPER_ADMIN"
+    },
+    "menu": {
+      "name": "Orders",
+      "module": "Operations"
+    }
+  },
+  {
+    "id": 12,
+    "roleId": 1,
+    "menuId": 12,
+    "can_view": true,
+    "can_add": true,
+    "can_edit": true,
+    "can_delete": true,
+    "role": {
+      "name": "SUPER_ADMIN"
+    },
+    "menu": {
+      "name": "Missions",
+      "module": "Logistics"
+    }
+  },
+  {
+    "id": 13,
+    "roleId": 1,
+    "menuId": 13,
+    "can_view": true,
+    "can_add": true,
+    "can_edit": true,
+    "can_delete": true,
+    "role": {
+      "name": "SUPER_ADMIN"
+    },
+    "menu": {
+      "name": "Deliveries",
+      "module": "Logistics"
+    }
+  },
+  {
+    "id": 14,
+    "roleId": 1,
+    "menuId": 14,
+    "can_view": true,
+    "can_add": true,
+    "can_edit": true,
+    "can_delete": true,
+    "role": {
+      "name": "SUPER_ADMIN"
+    },
+    "menu": {
+      "name": "Invoices",
+      "module": "Finance"
+    }
+  },
+  {
+    "id": 15,
+    "roleId": 1,
+    "menuId": 15,
+    "can_view": true,
+    "can_add": true,
+    "can_edit": true,
+    "can_delete": true,
+    "role": {
+      "name": "SUPER_ADMIN"
+    },
+    "menu": {
+      "name": "Payments",
+      "module": "Finance"
+    }
+  },
+  {
+    "id": 16,
+    "roleId": 1,
+    "menuId": 16,
+    "can_view": true,
+    "can_add": true,
+    "can_edit": true,
+    "can_delete": true,
+    "role": {
+      "name": "SUPER_ADMIN"
+    },
+    "menu": {
+      "name": "Purchase Requests",
+      "module": "Procurement"
+    }
+  },
+  {
+    "id": 17,
+    "roleId": 1,
+    "menuId": 17,
+    "can_view": true,
+    "can_add": true,
+    "can_edit": true,
+    "can_delete": true,
+    "role": {
+      "name": "SUPER_ADMIN"
+    },
+    "menu": {
+      "name": "Quotes",
+      "module": "Procurement"
+    }
+  },
+  {
+    "id": 18,
+    "roleId": 1,
+    "menuId": 18,
+    "can_view": true,
+    "can_add": true,
+    "can_edit": true,
+    "can_delete": true,
+    "role": {
+      "name": "SUPER_ADMIN"
+    },
+    "menu": {
+      "name": "Purchase Orders",
+      "module": "Procurement"
+    }
+  },
+  {
+    "id": 19,
+    "roleId": 1,
+    "menuId": 19,
+    "can_view": true,
+    "can_add": true,
+    "can_edit": true,
+    "can_delete": true,
+    "role": {
+      "name": "SUPER_ADMIN"
+    },
+    "menu": {
+      "name": "Fleet",
+      "module": "Logistics"
+    }
+  },
+  {
+    "id": 20,
+    "roleId": 1,
+    "menuId": 20,
+    "can_view": true,
+    "can_add": true,
+    "can_edit": true,
+    "can_delete": true,
+    "role": {
+      "name": "SUPER_ADMIN"
+    },
+    "menu": {
+      "name": "Routes",
+      "module": "Logistics"
+    }
+  },
+  {
+    "id": 21,
+    "roleId": 1,
+    "menuId": 21,
+    "can_view": true,
+    "can_add": true,
+    "can_edit": true,
+    "can_delete": true,
+    "role": {
+      "name": "SUPER_ADMIN"
+    },
+    "menu": {
+      "name": "Tracking",
+      "module": "Logistics"
+    }
+  },
+  {
+    "id": 22,
+    "roleId": 1,
+    "menuId": 22,
+    "can_view": true,
+    "can_add": true,
+    "can_edit": true,
+    "can_delete": true,
+    "role": {
+      "name": "SUPER_ADMIN"
+    },
+    "menu": {
+      "name": "Urgent",
+      "module": "Logistics"
+    }
+  },
+  {
+    "id": 23,
+    "roleId": 1,
+    "menuId": 23,
+    "can_view": true,
+    "can_add": true,
+    "can_edit": true,
+    "can_delete": true,
+    "role": {
+      "name": "SUPER_ADMIN"
+    },
+    "menu": {
+      "name": "Inventory",
+      "module": "Inventory"
+    }
+  },
+  {
+    "id": 24,
+    "roleId": 1,
+    "menuId": 24,
+    "can_view": true,
+    "can_add": true,
+    "can_edit": true,
+    "can_delete": true,
+    "role": {
+      "name": "SUPER_ADMIN"
+    },
+    "menu": {
+      "name": "Warehouses",
+      "module": "Inventory"
+    }
+  },
+  {
+    "id": 25,
+    "roleId": 1,
+    "menuId": 25,
+    "can_view": true,
+    "can_add": true,
+    "can_edit": true,
+    "can_delete": true,
+    "role": {
+      "name": "SUPER_ADMIN"
+    },
+    "menu": {
+      "name": "Alerts",
+      "module": "Inventory"
+    }
+  },
+  {
+    "id": 26,
+    "roleId": 1,
+    "menuId": 26,
+    "can_view": true,
+    "can_add": true,
+    "can_edit": true,
+    "can_delete": true,
+    "role": {
+      "name": "SUPER_ADMIN"
+    },
+    "menu": {
+      "name": "Events",
+      "module": "Concierge"
+    }
+  },
+  {
+    "id": 27,
+    "roleId": 1,
+    "menuId": 27,
+    "can_view": true,
+    "can_add": true,
+    "can_edit": true,
+    "can_delete": true,
+    "role": {
+      "name": "SUPER_ADMIN"
+    },
+    "menu": {
+      "name": "Guest Requests",
+      "module": "Concierge"
+    }
+  },
+  {
+    "id": 28,
+    "roleId": 1,
+    "menuId": 28,
+    "can_view": true,
+    "can_add": true,
+    "can_edit": true,
+    "can_delete": true,
+    "role": {
+      "name": "SUPER_ADMIN"
+    },
+    "menu": {
+      "name": "Luxury Items",
+      "module": "Concierge"
+    }
+  },
+  {
+    "id": 29,
+    "roleId": 1,
+    "menuId": 29,
+    "can_view": true,
+    "can_add": true,
+    "can_edit": true,
+    "can_delete": true,
+    "role": {
+      "name": "SUPER_ADMIN"
+    },
+    "menu": {
+      "name": "Access Plans",
+      "module": "Concierge"
+    }
+  },
+  {
+    "id": 30,
+    "roleId": 1,
+    "menuId": 30,
+    "can_view": true,
+    "can_add": true,
+    "can_edit": true,
+    "can_delete": true,
+    "role": {
+      "name": "SUPER_ADMIN"
+    },
+    "menu": {
+      "name": "Chauffeur",
+      "module": "Concierge"
+    }
+  },
+  {
+    "id": 31,
+    "roleId": 1,
+    "menuId": 31,
+    "can_view": true,
+    "can_add": true,
+    "can_edit": true,
+    "can_delete": true,
+    "role": {
+      "name": "SUPER_ADMIN"
+    },
+    "menu": {
+      "name": "Staff Terminal",
+      "module": "Staff"
+    }
+  },
+  {
+    "id": 32,
+    "roleId": 1,
+    "menuId": 32,
+    "can_view": true,
+    "can_add": true,
+    "can_edit": true,
+    "can_delete": true,
+    "role": {
+      "name": "SUPER_ADMIN"
+    },
+    "menu": {
+      "name": "Assignments",
+      "module": "Staff"
+    }
+  },
+  {
+    "id": 33,
+    "roleId": 1,
+    "menuId": 33,
+    "can_view": true,
+    "can_add": true,
+    "can_edit": true,
+    "can_delete": true,
+    "role": {
+      "name": "SUPER_ADMIN"
+    },
+    "menu": {
+      "name": "Field Map",
+      "module": "Staff"
+    }
+  },
+  {
+    "id": 34,
+    "roleId": 1,
+    "menuId": 34,
+    "can_view": true,
+    "can_add": true,
+    "can_edit": true,
+    "can_delete": true,
+    "role": {
+      "name": "SUPER_ADMIN"
+    },
+    "menu": {
+      "name": "Leave & Absence",
+      "module": "HR"
+    }
+  },
+  {
+    "id": 35,
+    "roleId": 1,
+    "menuId": 35,
+    "can_view": true,
+    "can_add": true,
+    "can_edit": true,
+    "can_delete": true,
+    "role": {
+      "name": "SUPER_ADMIN"
+    },
+    "menu": {
+      "name": "Pay & Records",
+      "module": "HR"
+    }
+  },
+  {
+    "id": 36,
+    "roleId": 1,
+    "menuId": 36,
+    "can_view": true,
+    "can_add": true,
+    "can_edit": true,
+    "can_delete": true,
+    "role": {
+      "name": "SUPER_ADMIN"
+    },
+    "menu": {
+      "name": "Payroll",
+      "module": "HR"
+    }
+  },
+  {
+    "id": 37,
+    "roleId": 1,
+    "menuId": 37,
+    "can_view": true,
+    "can_add": true,
+    "can_edit": true,
+    "can_delete": true,
+    "role": {
+      "name": "SUPER_ADMIN"
+    },
+    "menu": {
+      "name": "Support",
+      "module": "CRM"
+    }
+  },
+  {
+    "id": 38,
+    "roleId": 1,
+    "menuId": 38,
+    "can_view": true,
+    "can_add": true,
+    "can_edit": true,
+    "can_delete": true,
+    "role": {
+      "name": "SUPER_ADMIN"
+    },
+    "menu": {
+      "name": "Marketplace",
+      "module": "Client"
+    }
+  },
+  {
+    "id": 39,
+    "roleId": 1,
+    "menuId": 39,
+    "can_view": true,
+    "can_add": true,
+    "can_edit": true,
+    "can_delete": true,
+    "role": {
+      "name": "SUPER_ADMIN"
+    },
+    "menu": {
+      "name": "My Orders",
+      "module": "Client"
+    }
+  },
+  {
+    "id": 40,
+    "roleId": 1,
+    "menuId": 40,
+    "can_view": true,
+    "can_add": true,
+    "can_edit": true,
+    "can_delete": true,
+    "role": {
+      "name": "SUPER_ADMIN"
+    },
+    "menu": {
+      "name": "Membership",
+      "module": "Client"
+    }
+  },
+  {
+    "id": 41,
+    "roleId": 2,
+    "menuId": 1,
+    "can_view": true,
+    "can_add": true,
+    "can_edit": true,
+    "can_delete": true,
+    "role": {
+      "name": "ADMIN"
+    },
+    "menu": {
+      "name": "Dashboard",
+      "module": "Core"
+    }
+  },
+  {
+    "id": 42,
+    "roleId": 2,
+    "menuId": 2,
+    "can_view": true,
+    "can_add": true,
+    "can_edit": true,
+    "can_delete": true,
+    "role": {
+      "name": "ADMIN"
+    },
+    "menu": {
+      "name": "Analytics",
+      "module": "Core"
+    }
+  },
+  {
+    "id": 43,
+    "roleId": 2,
+    "menuId": 3,
+    "can_view": true,
+    "can_add": true,
+    "can_edit": true,
+    "can_delete": true,
+    "role": {
+      "name": "ADMIN"
+    },
+    "menu": {
+      "name": "Clients",
+      "module": "CRM"
+    }
+  },
+  {
+    "id": 44,
+    "roleId": 2,
+    "menuId": 4,
+    "can_view": true,
+    "can_add": true,
+    "can_edit": true,
+    "can_delete": true,
+    "role": {
+      "name": "ADMIN"
+    },
+    "menu": {
+      "name": "Vendors",
+      "module": "Procurement"
+    }
+  },
+  {
+    "id": 45,
+    "roleId": 2,
+    "menuId": 5,
+    "can_view": true,
+    "can_add": true,
+    "can_edit": true,
+    "can_delete": true,
+    "role": {
+      "name": "ADMIN"
+    },
+    "menu": {
+      "name": "Personnel",
+      "module": "HR"
+    }
+  },
+  {
+    "id": 46,
+    "roleId": 2,
+    "menuId": 6,
+    "can_view": true,
+    "can_add": true,
+    "can_edit": true,
+    "can_delete": true,
+    "role": {
+      "name": "ADMIN"
+    },
+    "menu": {
+      "name": "Audit Log",
+      "module": "System"
+    }
+  },
+  {
+    "id": 47,
+    "roleId": 2,
+    "menuId": 7,
+    "can_view": true,
+    "can_add": true,
+    "can_edit": true,
+    "can_delete": true,
+    "role": {
+      "name": "ADMIN"
+    },
+    "menu": {
+      "name": "Plans",
+      "module": "Settings"
+    }
+  },
+  {
+    "id": 48,
+    "roleId": 2,
+    "menuId": 8,
+    "can_view": true,
+    "can_add": true,
+    "can_edit": true,
+    "can_delete": true,
+    "role": {
+      "name": "ADMIN"
+    },
+    "menu": {
+      "name": "Settings",
+      "module": "Settings"
+    }
+  },
+  {
+    "id": 49,
+    "roleId": 2,
+    "menuId": 9,
+    "can_view": true,
+    "can_add": true,
+    "can_edit": true,
+    "can_delete": true,
+    "role": {
+      "name": "ADMIN"
+    },
+    "menu": {
+      "name": "Security",
+      "module": "Settings"
+    }
+  },
+  {
+    "id": 50,
+    "roleId": 2,
+    "menuId": 10,
+    "can_view": true,
+    "can_add": true,
+    "can_edit": true,
+    "can_delete": true,
+    "role": {
+      "name": "ADMIN"
+    },
+    "menu": {
+      "name": "Projects",
+      "module": "Operations"
+    }
+  },
+  {
+    "id": 51,
+    "roleId": 2,
+    "menuId": 11,
+    "can_view": true,
+    "can_add": true,
+    "can_edit": true,
+    "can_delete": true,
+    "role": {
+      "name": "ADMIN"
+    },
+    "menu": {
+      "name": "Orders",
+      "module": "Operations"
+    }
+  },
+  {
+    "id": 52,
+    "roleId": 2,
+    "menuId": 12,
+    "can_view": true,
+    "can_add": true,
+    "can_edit": true,
+    "can_delete": true,
+    "role": {
+      "name": "ADMIN"
+    },
+    "menu": {
+      "name": "Missions",
+      "module": "Logistics"
+    }
+  },
+  {
+    "id": 53,
+    "roleId": 2,
+    "menuId": 13,
+    "can_view": true,
+    "can_add": true,
+    "can_edit": true,
+    "can_delete": true,
+    "role": {
+      "name": "ADMIN"
+    },
+    "menu": {
+      "name": "Deliveries",
+      "module": "Logistics"
+    }
+  },
+  {
+    "id": 54,
+    "roleId": 2,
+    "menuId": 14,
+    "can_view": true,
+    "can_add": true,
+    "can_edit": true,
+    "can_delete": true,
+    "role": {
+      "name": "ADMIN"
+    },
+    "menu": {
+      "name": "Invoices",
+      "module": "Finance"
+    }
+  },
+  {
+    "id": 55,
+    "roleId": 2,
+    "menuId": 15,
+    "can_view": true,
+    "can_add": true,
+    "can_edit": true,
+    "can_delete": true,
+    "role": {
+      "name": "ADMIN"
+    },
+    "menu": {
+      "name": "Payments",
+      "module": "Finance"
+    }
+  },
+  {
+    "id": 56,
+    "roleId": 2,
+    "menuId": 16,
+    "can_view": true,
+    "can_add": true,
+    "can_edit": true,
+    "can_delete": true,
+    "role": {
+      "name": "ADMIN"
+    },
+    "menu": {
+      "name": "Purchase Requests",
+      "module": "Procurement"
+    }
+  },
+  {
+    "id": 57,
+    "roleId": 2,
+    "menuId": 17,
+    "can_view": true,
+    "can_add": true,
+    "can_edit": true,
+    "can_delete": true,
+    "role": {
+      "name": "ADMIN"
+    },
+    "menu": {
+      "name": "Quotes",
+      "module": "Procurement"
+    }
+  },
+  {
+    "id": 58,
+    "roleId": 2,
+    "menuId": 18,
+    "can_view": true,
+    "can_add": true,
+    "can_edit": true,
+    "can_delete": true,
+    "role": {
+      "name": "ADMIN"
+    },
+    "menu": {
+      "name": "Purchase Orders",
+      "module": "Procurement"
+    }
+  },
+  {
+    "id": 59,
+    "roleId": 2,
+    "menuId": 19,
+    "can_view": true,
+    "can_add": true,
+    "can_edit": true,
+    "can_delete": true,
+    "role": {
+      "name": "ADMIN"
+    },
+    "menu": {
+      "name": "Fleet",
+      "module": "Logistics"
+    }
+  },
+  {
+    "id": 60,
+    "roleId": 2,
+    "menuId": 20,
+    "can_view": true,
+    "can_add": true,
+    "can_edit": true,
+    "can_delete": true,
+    "role": {
+      "name": "ADMIN"
+    },
+    "menu": {
+      "name": "Routes",
+      "module": "Logistics"
+    }
+  },
+  {
+    "id": 61,
+    "roleId": 2,
+    "menuId": 21,
+    "can_view": true,
+    "can_add": true,
+    "can_edit": true,
+    "can_delete": true,
+    "role": {
+      "name": "ADMIN"
+    },
+    "menu": {
+      "name": "Tracking",
+      "module": "Logistics"
+    }
+  },
+  {
+    "id": 62,
+    "roleId": 2,
+    "menuId": 22,
+    "can_view": true,
+    "can_add": true,
+    "can_edit": true,
+    "can_delete": true,
+    "role": {
+      "name": "ADMIN"
+    },
+    "menu": {
+      "name": "Urgent",
+      "module": "Logistics"
+    }
+  },
+  {
+    "id": 63,
+    "roleId": 2,
+    "menuId": 23,
+    "can_view": true,
+    "can_add": true,
+    "can_edit": true,
+    "can_delete": true,
+    "role": {
+      "name": "ADMIN"
+    },
+    "menu": {
+      "name": "Inventory",
+      "module": "Inventory"
+    }
+  },
+  {
+    "id": 64,
+    "roleId": 2,
+    "menuId": 24,
+    "can_view": true,
+    "can_add": true,
+    "can_edit": true,
+    "can_delete": true,
+    "role": {
+      "name": "ADMIN"
+    },
+    "menu": {
+      "name": "Warehouses",
+      "module": "Inventory"
+    }
+  },
+  {
+    "id": 65,
+    "roleId": 2,
+    "menuId": 25,
+    "can_view": true,
+    "can_add": true,
+    "can_edit": true,
+    "can_delete": true,
+    "role": {
+      "name": "ADMIN"
+    },
+    "menu": {
+      "name": "Alerts",
+      "module": "Inventory"
+    }
+  },
+  {
+    "id": 66,
+    "roleId": 2,
+    "menuId": 26,
+    "can_view": true,
+    "can_add": true,
+    "can_edit": true,
+    "can_delete": true,
+    "role": {
+      "name": "ADMIN"
+    },
+    "menu": {
+      "name": "Events",
+      "module": "Concierge"
+    }
+  },
+  {
+    "id": 67,
+    "roleId": 2,
+    "menuId": 27,
+    "can_view": true,
+    "can_add": true,
+    "can_edit": true,
+    "can_delete": true,
+    "role": {
+      "name": "ADMIN"
+    },
+    "menu": {
+      "name": "Guest Requests",
+      "module": "Concierge"
+    }
+  },
+  {
+    "id": 68,
+    "roleId": 2,
+    "menuId": 28,
+    "can_view": true,
+    "can_add": true,
+    "can_edit": true,
+    "can_delete": true,
+    "role": {
+      "name": "ADMIN"
+    },
+    "menu": {
+      "name": "Luxury Items",
+      "module": "Concierge"
+    }
+  },
+  {
+    "id": 69,
+    "roleId": 2,
+    "menuId": 29,
+    "can_view": true,
+    "can_add": true,
+    "can_edit": true,
+    "can_delete": true,
+    "role": {
+      "name": "ADMIN"
+    },
+    "menu": {
+      "name": "Access Plans",
+      "module": "Concierge"
+    }
+  },
+  {
+    "id": 70,
+    "roleId": 2,
+    "menuId": 30,
+    "can_view": true,
+    "can_add": true,
+    "can_edit": true,
+    "can_delete": true,
+    "role": {
+      "name": "ADMIN"
+    },
+    "menu": {
+      "name": "Chauffeur",
+      "module": "Concierge"
+    }
+  },
+  {
+    "id": 71,
+    "roleId": 2,
+    "menuId": 31,
+    "can_view": true,
+    "can_add": true,
+    "can_edit": true,
+    "can_delete": true,
+    "role": {
+      "name": "ADMIN"
+    },
+    "menu": {
+      "name": "Staff Terminal",
+      "module": "Staff"
+    }
+  },
+  {
+    "id": 72,
+    "roleId": 2,
+    "menuId": 32,
+    "can_view": true,
+    "can_add": true,
+    "can_edit": true,
+    "can_delete": true,
+    "role": {
+      "name": "ADMIN"
+    },
+    "menu": {
+      "name": "Assignments",
+      "module": "Staff"
+    }
+  },
+  {
+    "id": 73,
+    "roleId": 2,
+    "menuId": 33,
+    "can_view": true,
+    "can_add": true,
+    "can_edit": true,
+    "can_delete": true,
+    "role": {
+      "name": "ADMIN"
+    },
+    "menu": {
+      "name": "Field Map",
+      "module": "Staff"
+    }
+  },
+  {
+    "id": 74,
+    "roleId": 2,
+    "menuId": 34,
+    "can_view": true,
+    "can_add": true,
+    "can_edit": true,
+    "can_delete": true,
+    "role": {
+      "name": "ADMIN"
+    },
+    "menu": {
+      "name": "Leave & Absence",
+      "module": "HR"
+    }
+  },
+  {
+    "id": 75,
+    "roleId": 2,
+    "menuId": 35,
+    "can_view": true,
+    "can_add": true,
+    "can_edit": true,
+    "can_delete": true,
+    "role": {
+      "name": "ADMIN"
+    },
+    "menu": {
+      "name": "Pay & Records",
+      "module": "HR"
+    }
+  },
+  {
+    "id": 76,
+    "roleId": 2,
+    "menuId": 36,
+    "can_view": true,
+    "can_add": true,
+    "can_edit": true,
+    "can_delete": true,
+    "role": {
+      "name": "ADMIN"
+    },
+    "menu": {
+      "name": "Payroll",
+      "module": "HR"
+    }
+  },
+  {
+    "id": 77,
+    "roleId": 2,
+    "menuId": 37,
+    "can_view": true,
+    "can_add": true,
+    "can_edit": true,
+    "can_delete": true,
+    "role": {
+      "name": "ADMIN"
+    },
+    "menu": {
+      "name": "Support",
+      "module": "CRM"
+    }
+  },
+  {
+    "id": 78,
+    "roleId": 2,
+    "menuId": 38,
+    "can_view": true,
+    "can_add": true,
+    "can_edit": true,
+    "can_delete": true,
+    "role": {
+      "name": "ADMIN"
+    },
+    "menu": {
+      "name": "Marketplace",
+      "module": "Client"
+    }
+  },
+  {
+    "id": 79,
+    "roleId": 2,
+    "menuId": 39,
+    "can_view": true,
+    "can_add": true,
+    "can_edit": true,
+    "can_delete": true,
+    "role": {
+      "name": "ADMIN"
+    },
+    "menu": {
+      "name": "My Orders",
+      "module": "Client"
+    }
+  },
+  {
+    "id": 80,
+    "roleId": 2,
+    "menuId": 40,
+    "can_view": true,
+    "can_add": true,
+    "can_edit": true,
+    "can_delete": true,
+    "role": {
+      "name": "ADMIN"
+    },
+    "menu": {
+      "name": "Membership",
+      "module": "Client"
+    }
+  },
+  {
+    "id": 81,
+    "roleId": 3,
+    "menuId": 1,
+    "can_view": true,
+    "can_add": false,
+    "can_edit": false,
+    "can_delete": false,
+    "role": {
+      "name": "OPERATIONS"
+    },
+    "menu": {
+      "name": "Dashboard",
+      "module": "Core"
+    }
+  },
+  {
+    "id": 82,
+    "roleId": 3,
+    "menuId": 2,
+    "can_view": true,
+    "can_add": false,
+    "can_edit": false,
+    "can_delete": false,
+    "role": {
+      "name": "OPERATIONS"
+    },
+    "menu": {
+      "name": "Analytics",
+      "module": "Core"
+    }
+  },
+  {
+    "id": 83,
+    "roleId": 3,
+    "menuId": 10,
+    "can_view": true,
+    "can_add": false,
+    "can_edit": false,
+    "can_delete": false,
+    "role": {
+      "name": "OPERATIONS"
+    },
+    "menu": {
+      "name": "Projects",
+      "module": "Operations"
+    }
+  },
+  {
+    "id": 84,
+    "roleId": 3,
+    "menuId": 11,
+    "can_view": true,
+    "can_add": false,
+    "can_edit": false,
+    "can_delete": false,
+    "role": {
+      "name": "OPERATIONS"
+    },
+    "menu": {
+      "name": "Orders",
+      "module": "Operations"
+    }
+  },
+  {
+    "id": 85,
+    "roleId": 3,
+    "menuId": 12,
+    "can_view": true,
+    "can_add": false,
+    "can_edit": false,
+    "can_delete": false,
+    "role": {
+      "name": "OPERATIONS"
+    },
+    "menu": {
+      "name": "Missions",
+      "module": "Logistics"
+    }
+  },
+  {
+    "id": 86,
+    "roleId": 3,
+    "menuId": 13,
+    "can_view": true,
+    "can_add": false,
+    "can_edit": false,
+    "can_delete": false,
+    "role": {
+      "name": "OPERATIONS"
+    },
+    "menu": {
+      "name": "Deliveries",
+      "module": "Logistics"
+    }
+  },
+  {
+    "id": 87,
+    "roleId": 3,
+    "menuId": 14,
+    "can_view": true,
+    "can_add": false,
+    "can_edit": false,
+    "can_delete": false,
+    "role": {
+      "name": "OPERATIONS"
+    },
+    "menu": {
+      "name": "Invoices",
+      "module": "Finance"
+    }
+  },
+  {
+    "id": 88,
+    "roleId": 3,
+    "menuId": 15,
+    "can_view": true,
+    "can_add": false,
+    "can_edit": false,
+    "can_delete": false,
+    "role": {
+      "name": "OPERATIONS"
+    },
+    "menu": {
+      "name": "Payments",
+      "module": "Finance"
+    }
+  },
+  {
+    "id": 89,
+    "roleId": 3,
+    "menuId": 31,
+    "can_view": true,
+    "can_add": false,
+    "can_edit": false,
+    "can_delete": false,
+    "role": {
+      "name": "OPERATIONS"
+    },
+    "menu": {
+      "name": "Staff Terminal",
+      "module": "Staff"
+    }
+  },
+  {
+    "id": 90,
+    "roleId": 3,
+    "menuId": 34,
+    "can_view": true,
+    "can_add": false,
+    "can_edit": false,
+    "can_delete": false,
+    "role": {
+      "name": "OPERATIONS"
+    },
+    "menu": {
+      "name": "Leave & Absence",
+      "module": "HR"
+    }
+  },
+  {
+    "id": 91,
+    "roleId": 3,
+    "menuId": 35,
+    "can_view": true,
+    "can_add": false,
+    "can_edit": false,
+    "can_delete": false,
+    "role": {
+      "name": "OPERATIONS"
+    },
+    "menu": {
+      "name": "Pay & Records",
+      "module": "HR"
+    }
+  },
+  {
+    "id": 92,
+    "roleId": 4,
+    "menuId": 1,
+    "can_view": true,
+    "can_add": false,
+    "can_edit": false,
+    "can_delete": false,
+    "role": {
+      "name": "PROCUREMENT"
+    },
+    "menu": {
+      "name": "Dashboard",
+      "module": "Core"
+    }
+  },
+  {
+    "id": 93,
+    "roleId": 4,
+    "menuId": 4,
+    "can_view": true,
+    "can_add": false,
+    "can_edit": false,
+    "can_delete": false,
+    "role": {
+      "name": "PROCUREMENT"
+    },
+    "menu": {
+      "name": "Vendors",
+      "module": "Procurement"
+    }
+  },
+  {
+    "id": 94,
+    "roleId": 4,
+    "menuId": 6,
+    "can_view": true,
+    "can_add": false,
+    "can_edit": false,
+    "can_delete": false,
+    "role": {
+      "name": "PROCUREMENT"
+    },
+    "menu": {
+      "name": "Audit Log",
+      "module": "System"
+    }
+  },
+  {
+    "id": 95,
+    "roleId": 4,
+    "menuId": 14,
+    "can_view": true,
+    "can_add": false,
+    "can_edit": false,
+    "can_delete": false,
+    "role": {
+      "name": "PROCUREMENT"
+    },
+    "menu": {
+      "name": "Invoices",
+      "module": "Finance"
+    }
+  },
+  {
+    "id": 96,
+    "roleId": 4,
+    "menuId": 16,
+    "can_view": true,
+    "can_add": false,
+    "can_edit": false,
+    "can_delete": false,
+    "role": {
+      "name": "PROCUREMENT"
+    },
+    "menu": {
+      "name": "Purchase Requests",
+      "module": "Procurement"
+    }
+  },
+  {
+    "id": 97,
+    "roleId": 4,
+    "menuId": 17,
+    "can_view": true,
+    "can_add": false,
+    "can_edit": false,
+    "can_delete": false,
+    "role": {
+      "name": "PROCUREMENT"
+    },
+    "menu": {
+      "name": "Quotes",
+      "module": "Procurement"
+    }
+  },
+  {
+    "id": 98,
+    "roleId": 4,
+    "menuId": 18,
+    "can_view": true,
+    "can_add": false,
+    "can_edit": false,
+    "can_delete": false,
+    "role": {
+      "name": "PROCUREMENT"
+    },
+    "menu": {
+      "name": "Purchase Orders",
+      "module": "Procurement"
+    }
+  },
+  {
+    "id": 99,
+    "roleId": 4,
+    "menuId": 34,
+    "can_view": true,
+    "can_add": false,
+    "can_edit": false,
+    "can_delete": false,
+    "role": {
+      "name": "PROCUREMENT"
+    },
+    "menu": {
+      "name": "Leave & Absence",
+      "module": "HR"
+    }
+  },
+  {
+    "id": 100,
+    "roleId": 4,
+    "menuId": 35,
+    "can_view": true,
+    "can_add": false,
+    "can_edit": false,
+    "can_delete": false,
+    "role": {
+      "name": "PROCUREMENT"
+    },
+    "menu": {
+      "name": "Pay & Records",
+      "module": "HR"
+    }
+  },
+  {
+    "id": 101,
+    "roleId": 5,
+    "menuId": 1,
+    "can_view": true,
+    "can_add": false,
+    "can_edit": false,
+    "can_delete": false,
+    "role": {
+      "name": "LOGISTICS"
+    },
+    "menu": {
+      "name": "Dashboard",
+      "module": "Core"
+    }
+  },
+  {
+    "id": 102,
+    "roleId": 5,
+    "menuId": 12,
+    "can_view": true,
+    "can_add": false,
+    "can_edit": false,
+    "can_delete": false,
+    "role": {
+      "name": "LOGISTICS"
+    },
+    "menu": {
+      "name": "Missions",
+      "module": "Logistics"
+    }
+  },
+  {
+    "id": 103,
+    "roleId": 5,
+    "menuId": 13,
+    "can_view": true,
+    "can_add": false,
+    "can_edit": false,
+    "can_delete": false,
+    "role": {
+      "name": "LOGISTICS"
+    },
+    "menu": {
+      "name": "Deliveries",
+      "module": "Logistics"
+    }
+  },
+  {
+    "id": 104,
+    "roleId": 5,
+    "menuId": 19,
+    "can_view": true,
+    "can_add": false,
+    "can_edit": false,
+    "can_delete": false,
+    "role": {
+      "name": "LOGISTICS"
+    },
+    "menu": {
+      "name": "Fleet",
+      "module": "Logistics"
+    }
+  },
+  {
+    "id": 105,
+    "roleId": 5,
+    "menuId": 20,
+    "can_view": true,
+    "can_add": false,
+    "can_edit": false,
+    "can_delete": false,
+    "role": {
+      "name": "LOGISTICS"
+    },
+    "menu": {
+      "name": "Routes",
+      "module": "Logistics"
+    }
+  },
+  {
+    "id": 106,
+    "roleId": 5,
+    "menuId": 21,
+    "can_view": true,
+    "can_add": false,
+    "can_edit": false,
+    "can_delete": false,
+    "role": {
+      "name": "LOGISTICS"
+    },
+    "menu": {
+      "name": "Tracking",
+      "module": "Logistics"
+    }
+  },
+  {
+    "id": 107,
+    "roleId": 5,
+    "menuId": 22,
+    "can_view": true,
+    "can_add": false,
+    "can_edit": false,
+    "can_delete": false,
+    "role": {
+      "name": "LOGISTICS"
+    },
+    "menu": {
+      "name": "Urgent",
+      "module": "Logistics"
+    }
+  },
+  {
+    "id": 108,
+    "roleId": 5,
+    "menuId": 31,
+    "can_view": true,
+    "can_add": false,
+    "can_edit": false,
+    "can_delete": false,
+    "role": {
+      "name": "LOGISTICS"
+    },
+    "menu": {
+      "name": "Staff Terminal",
+      "module": "Staff"
+    }
+  },
+  {
+    "id": 109,
+    "roleId": 5,
+    "menuId": 34,
+    "can_view": true,
+    "can_add": false,
+    "can_edit": false,
+    "can_delete": false,
+    "role": {
+      "name": "LOGISTICS"
+    },
+    "menu": {
+      "name": "Leave & Absence",
+      "module": "HR"
+    }
+  },
+  {
+    "id": 110,
+    "roleId": 5,
+    "menuId": 35,
+    "can_view": true,
+    "can_add": false,
+    "can_edit": false,
+    "can_delete": false,
+    "role": {
+      "name": "LOGISTICS"
+    },
+    "menu": {
+      "name": "Pay & Records",
+      "module": "HR"
+    }
+  },
+  {
+    "id": 111,
+    "roleId": 6,
+    "menuId": 1,
+    "can_view": true,
+    "can_add": false,
+    "can_edit": false,
+    "can_delete": false,
+    "role": {
+      "name": "INVENTORY"
+    },
+    "menu": {
+      "name": "Dashboard",
+      "module": "Core"
+    }
+  },
+  {
+    "id": 112,
+    "roleId": 6,
+    "menuId": 6,
+    "can_view": true,
+    "can_add": false,
+    "can_edit": false,
+    "can_delete": false,
+    "role": {
+      "name": "INVENTORY"
+    },
+    "menu": {
+      "name": "Audit Log",
+      "module": "System"
+    }
+  },
+  {
+    "id": 113,
+    "roleId": 6,
+    "menuId": 23,
+    "can_view": true,
+    "can_add": false,
+    "can_edit": false,
+    "can_delete": false,
+    "role": {
+      "name": "INVENTORY"
+    },
+    "menu": {
+      "name": "Inventory",
+      "module": "Inventory"
+    }
+  },
+  {
+    "id": 114,
+    "roleId": 6,
+    "menuId": 24,
+    "can_view": true,
+    "can_add": false,
+    "can_edit": false,
+    "can_delete": false,
+    "role": {
+      "name": "INVENTORY"
+    },
+    "menu": {
+      "name": "Warehouses",
+      "module": "Inventory"
+    }
+  },
+  {
+    "id": 115,
+    "roleId": 6,
+    "menuId": 25,
+    "can_view": true,
+    "can_add": false,
+    "can_edit": false,
+    "can_delete": false,
+    "role": {
+      "name": "INVENTORY"
+    },
+    "menu": {
+      "name": "Alerts",
+      "module": "Inventory"
+    }
+  },
+  {
+    "id": 116,
+    "roleId": 6,
+    "menuId": 31,
+    "can_view": true,
+    "can_add": false,
+    "can_edit": false,
+    "can_delete": false,
+    "role": {
+      "name": "INVENTORY"
+    },
+    "menu": {
+      "name": "Staff Terminal",
+      "module": "Staff"
+    }
+  },
+  {
+    "id": 117,
+    "roleId": 6,
+    "menuId": 34,
+    "can_view": true,
+    "can_add": false,
+    "can_edit": false,
+    "can_delete": false,
+    "role": {
+      "name": "INVENTORY"
+    },
+    "menu": {
+      "name": "Leave & Absence",
+      "module": "HR"
+    }
+  },
+  {
+    "id": 118,
+    "roleId": 6,
+    "menuId": 35,
+    "can_view": true,
+    "can_add": false,
+    "can_edit": false,
+    "can_delete": false,
+    "role": {
+      "name": "INVENTORY"
+    },
+    "menu": {
+      "name": "Pay & Records",
+      "module": "HR"
+    }
+  },
+  {
+    "id": 119,
+    "roleId": 7,
+    "menuId": 1,
+    "can_view": true,
+    "can_add": false,
+    "can_edit": false,
+    "can_delete": false,
+    "role": {
+      "name": "CONCIERGE"
+    },
+    "menu": {
+      "name": "Dashboard",
+      "module": "Core"
+    }
+  },
+  {
+    "id": 120,
+    "roleId": 7,
+    "menuId": 11,
+    "can_view": true,
+    "can_add": false,
+    "can_edit": false,
+    "can_delete": false,
+    "role": {
+      "name": "CONCIERGE"
+    },
+    "menu": {
+      "name": "Orders",
+      "module": "Operations"
+    }
+  },
+  {
+    "id": 121,
+    "roleId": 7,
+    "menuId": 23,
+    "can_view": true,
+    "can_add": false,
+    "can_edit": false,
+    "can_delete": false,
+    "role": {
+      "name": "CONCIERGE"
+    },
+    "menu": {
+      "name": "Inventory",
+      "module": "Inventory"
+    }
+  },
+  {
+    "id": 122,
+    "roleId": 7,
+    "menuId": 26,
+    "can_view": true,
+    "can_add": false,
+    "can_edit": false,
+    "can_delete": false,
+    "role": {
+      "name": "CONCIERGE"
+    },
+    "menu": {
+      "name": "Events",
+      "module": "Concierge"
+    }
+  },
+  {
+    "id": 123,
+    "roleId": 7,
+    "menuId": 27,
+    "can_view": true,
+    "can_add": false,
+    "can_edit": false,
+    "can_delete": false,
+    "role": {
+      "name": "CONCIERGE"
+    },
+    "menu": {
+      "name": "Guest Requests",
+      "module": "Concierge"
+    }
+  },
+  {
+    "id": 124,
+    "roleId": 7,
+    "menuId": 28,
+    "can_view": true,
+    "can_add": false,
+    "can_edit": false,
+    "can_delete": false,
+    "role": {
+      "name": "CONCIERGE"
+    },
+    "menu": {
+      "name": "Luxury Items",
+      "module": "Concierge"
+    }
+  },
+  {
+    "id": 125,
+    "roleId": 7,
+    "menuId": 29,
+    "can_view": true,
+    "can_add": false,
+    "can_edit": false,
+    "can_delete": false,
+    "role": {
+      "name": "CONCIERGE"
+    },
+    "menu": {
+      "name": "Access Plans",
+      "module": "Concierge"
+    }
+  },
+  {
+    "id": 126,
+    "roleId": 7,
+    "menuId": 30,
+    "can_view": true,
+    "can_add": false,
+    "can_edit": false,
+    "can_delete": false,
+    "role": {
+      "name": "CONCIERGE"
+    },
+    "menu": {
+      "name": "Chauffeur",
+      "module": "Concierge"
+    }
+  },
+  {
+    "id": 127,
+    "roleId": 7,
+    "menuId": 34,
+    "can_view": true,
+    "can_add": false,
+    "can_edit": false,
+    "can_delete": false,
+    "role": {
+      "name": "CONCIERGE"
+    },
+    "menu": {
+      "name": "Leave & Absence",
+      "module": "HR"
+    }
+  },
+  {
+    "id": 128,
+    "roleId": 7,
+    "menuId": 35,
+    "can_view": true,
+    "can_add": false,
+    "can_edit": false,
+    "can_delete": false,
+    "role": {
+      "name": "CONCIERGE"
+    },
+    "menu": {
+      "name": "Pay & Records",
+      "module": "HR"
+    }
+  },
+  {
+    "id": 129,
+    "roleId": 8,
+    "menuId": 1,
+    "can_view": true,
+    "can_add": false,
+    "can_edit": false,
+    "can_delete": false,
+    "role": {
+      "name": "BUSINESS_CLIENT"
+    },
+    "menu": {
+      "name": "Dashboard",
+      "module": "Core"
+    }
+  },
+  {
+    "id": 130,
+    "roleId": 8,
+    "menuId": 26,
+    "can_view": true,
+    "can_add": false,
+    "can_edit": false,
+    "can_delete": false,
+    "role": {
+      "name": "BUSINESS_CLIENT"
+    },
+    "menu": {
+      "name": "Events",
+      "module": "Concierge"
+    }
+  },
+  {
+    "id": 131,
+    "roleId": 8,
+    "menuId": 30,
+    "can_view": true,
+    "can_add": false,
+    "can_edit": false,
+    "can_delete": false,
+    "role": {
+      "name": "BUSINESS_CLIENT"
+    },
+    "menu": {
+      "name": "Chauffeur",
+      "module": "Concierge"
+    }
+  },
+  {
+    "id": 132,
+    "roleId": 8,
+    "menuId": 37,
+    "can_view": true,
+    "can_add": false,
+    "can_edit": false,
+    "can_delete": false,
+    "role": {
+      "name": "BUSINESS_CLIENT"
+    },
+    "menu": {
+      "name": "Support",
+      "module": "CRM"
+    }
+  },
+  {
+    "id": 133,
+    "roleId": 8,
+    "menuId": 38,
+    "can_view": true,
+    "can_add": false,
+    "can_edit": false,
+    "can_delete": false,
+    "role": {
+      "name": "BUSINESS_CLIENT"
+    },
+    "menu": {
+      "name": "Marketplace",
+      "module": "Client"
+    }
+  },
+  {
+    "id": 134,
+    "roleId": 8,
+    "menuId": 39,
+    "can_view": true,
+    "can_add": false,
+    "can_edit": false,
+    "can_delete": false,
+    "role": {
+      "name": "BUSINESS_CLIENT"
+    },
+    "menu": {
+      "name": "My Orders",
+      "module": "Client"
+    }
+  },
+  {
+    "id": 135,
+    "roleId": 9,
+    "menuId": 31,
+    "can_view": true,
+    "can_add": false,
+    "can_edit": false,
+    "can_delete": false,
+    "role": {
+      "name": "FIELD_STAFF"
+    },
+    "menu": {
+      "name": "Staff Terminal",
+      "module": "Staff"
+    }
+  },
+  {
+    "id": 136,
+    "roleId": 9,
+    "menuId": 32,
+    "can_view": true,
+    "can_add": false,
+    "can_edit": false,
+    "can_delete": false,
+    "role": {
+      "name": "FIELD_STAFF"
+    },
+    "menu": {
+      "name": "Assignments",
+      "module": "Staff"
+    }
+  },
+  {
+    "id": 137,
+    "roleId": 9,
+    "menuId": 33,
+    "can_view": true,
+    "can_add": false,
+    "can_edit": false,
+    "can_delete": false,
+    "role": {
+      "name": "FIELD_STAFF"
+    },
+    "menu": {
+      "name": "Field Map",
+      "module": "Staff"
+    }
+  },
+  {
+    "id": 138,
+    "roleId": 9,
+    "menuId": 34,
+    "can_view": true,
+    "can_add": false,
+    "can_edit": false,
+    "can_delete": false,
+    "role": {
+      "name": "FIELD_STAFF"
+    },
+    "menu": {
+      "name": "Leave & Absence",
+      "module": "HR"
+    }
+  },
+  {
+    "id": 139,
+    "roleId": 9,
+    "menuId": 35,
+    "can_view": true,
+    "can_add": false,
+    "can_edit": false,
+    "can_delete": false,
+    "role": {
+      "name": "FIELD_STAFF"
+    },
+    "menu": {
+      "name": "Pay & Records",
+      "module": "HR"
+    }
+  }
+]
