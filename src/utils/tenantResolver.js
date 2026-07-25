@@ -53,8 +53,11 @@ export const resolveTenantIdForSaasManagement = (req) => {
  * Allows ZaneZion central operational staff to see/manage data across ALL tenants.
  */
 export const resolveTenantIdForOperations = (req) => {
-  const roleName = req.user?.role?.name?.toUpperCase();
-  const isOperationalStaff = ['LOGISTICS', 'OPERATIONS', 'STAFF', 'FIELD_STAFF', 'CONCIERGE', 'SECURITY', 'DRIVER'].includes(roleName);
+  const rawRole = typeof req.user?.role === 'string' ? req.user.role : (req.user?.role?.name || req.user?.roleName || '');
+  const roleName = String(rawRole).toUpperCase();
+  const isOperationalStaff = [
+    'SUPER_ADMIN', 'SUPERADMIN', 'ADMIN', 'LOGISTICS', 'OPERATIONS', 'STAFF', 'FIELD_STAFF', 'CONCIERGE', 'SECURITY', 'DRIVER'
+  ].includes(roleName);
   const isMasterTenant = req.user?.tenantId === 1 || !req.user?.tenantId;
 
   if (isOperationalStaff && isMasterTenant) {

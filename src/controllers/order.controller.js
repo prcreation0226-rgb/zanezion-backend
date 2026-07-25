@@ -1,7 +1,7 @@
 import * as orderService from '../services/order.service.js';
 import { sendResponse } from '../utils/response.js';
 import prisma from '../config/db.js';
-import { resolveTenantId } from '../utils/tenantResolver.js';
+import { resolveTenantId, resolveTenantIdForOperations } from '../utils/tenantResolver.js';
 
 
 
@@ -16,61 +16,38 @@ export const createOrder = async (req, res, next) => {
     const tenantIdToUse = req.body.tenantId ? Number(req.body.tenantId) : resolveTenantId(req);
 
     // Try to parse clientId from payload
-    let parsedClientId = incomingClientId && incomingClientId !== "" ? Number(incomingClientId) : null;
+    let parsedClientId = incomingClientId && incomingClientId !== "" && incomingClientId !== "CLT-GUEST" ? Number(incomingClientId) : null;
 
-    // If clientId is missing/invalid (e.g. customer user sending 'CLT-GUEST' or nothing),
+    // If clientId is missing/invalid (e.g. customer/staff user sending 'CLT-GUEST' or nothing),
     // auto-resolve from their user account via email → find or create a Client record.
     if (!parsedClientId || isNaN(parsedClientId) || parsedClientId <= 0) {
-      const roleNameLower = (req.user.role?.name || '').toLowerCase();
-      const isCustomerRole = ['customer', 'business_client', 'individual_client', 'guest', 'saas_client', 'client', 'unknown'].includes(roleNameLower);
-      const isStaffRole = ['admin', 'operations', 'procurement', 'logistics', 'inventory', 'concierge', 'staff', 'super_admin', 'superadmin'].includes(roleNameLower);
+      let clientRecord = await prisma.client.findFirst({
+        where: { email: req.user.email }
+      });
 
-      if (isCustomerRole) {
-        // 1. Try to find an existing client linked by email
-        let clientRecord = await prisma.client.findFirst({
-          where: { email: req.user.email, tenantId: tenantIdToUse }
-        });
-
-        // 2. Fallback: find any client for this tenant with matching name
-        if (!clientRecord && req.user.name) {
-          clientRecord = await prisma.client.findFirst({
-            where: { companyName: req.user.name, tenantId: tenantIdToUse }
-          });
-        }
-
-        // 3. Auto-create a client record from their profile
-        if (!clientRecord) {
-          const clientCode = `CLT-${Date.now().toString().slice(-8)}`;
-          clientRecord = await prisma.client.create({
-            data: {
-              tenantId: tenantIdToUse,
-              companyName: req.user.name || req.user.email || 'Guest Client',
-              clientCode,
-              contactPerson: req.user.name || 'Guest',
-              email: req.user.email || `guest-${Date.now()}@zanezion.com`,
-              phone: req.user.phone || '0000000000',
-              clientType: roleNameLower === 'customer' ? 'individual' : 'business',
-              status: 'active',
-            }
-          });
-        }
-
-        parsedClientId = clientRecord.id;
-      } else if (isStaffRole) {
-        // Concierge / staff must explicitly select a client — provide a clear error message
-        return res.status(400).json({
-          success: false,
-          message: "Please select a client to create this order",
-          field: "clientId"
-        });
-      } else {
-        // Unknown role — generic error
-        return res.status(400).json({
-          success: false,
-          message: "Client selection is required",
-          field: "clientId"
+      if (!clientRecord && req.user.name) {
+        clientRecord = await prisma.client.findFirst({
+          where: { companyName: req.user.name }
         });
       }
+
+      if (!clientRecord) {
+        const clientCode = `CLT-${Date.now().toString().slice(-8)}`;
+        clientRecord = await prisma.client.create({
+          data: {
+            tenantId: tenantIdToUse,
+            companyName: req.user.name || req.user.email || 'Guest Client',
+            clientCode,
+            contactPerson: req.user.name || 'Guest',
+            email: req.user.email || `guest-${Date.now()}@zanezion.com`,
+            phone: req.user.phone || '0000000000',
+            clientType: 'individual',
+            status: 'active',
+          }
+        });
+      }
+
+      parsedClientId = clientRecord.id;
     }
 
 
@@ -94,9 +71,12 @@ export const createOrder = async (req, res, next) => {
 
 export const getOrders = async (req, res, next) => {
   try {
-    const tenantIdToFilter = resolveTenantId(req);
+    const rawOrderType = String(req.query.orderType || '').toUpperCase();
+    const isOperationalQuery = ['CHAUFFEUR', 'DELIVERY', 'SERVICE', 'LOGISTICS', 'MISSION'].includes(rawOrderType);
+    const tenantIdToFilter = isOperationalQuery ? resolveTenantIdForOperations(req) : resolveTenantId(req);
 
-    if (['INDIVIDUAL_CLIENT', 'CUSTOMER'].includes(req.user.role?.name?.toUpperCase())) {
+    const userRoleStr = String(req.user.role?.name || req.user.role || '').toUpperCase();
+    if (['INDIVIDUAL_CLIENT', 'CUSTOMER'].includes(userRoleStr)) {
       req.query.clientId = req.user.clientId;
     }
 
