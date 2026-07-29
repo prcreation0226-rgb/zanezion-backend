@@ -9,4 +9,8 @@ export const config = {
   jwtRefreshSecret: process.env.JWT_REFRESH_SECRET || 'zanezion_refresh_secret_key_2026',
   jwtRefreshExpiresIn: process.env.JWT_REFRESH_EXPIRES_IN || '7d',
   databaseUrl: process.env.DATABASE_URL,
+  cloudinaryCloudName: process.env.CLOUDINARY_CLOUD_NAME,
+  cloudinaryApiKey: process.env.CLOUDINARY_API_KEY,
+  cloudinaryApiSecret: process.env.CLOUDINARY_API_SECRET,
+  cloudinaryFolder: process.env.CLOUDINARY_FOLDER || 'zanezion',
 };
