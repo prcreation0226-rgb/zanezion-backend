@@ -50,7 +50,7 @@ export const findAllStock = async (tenantId, query) => {
       orderBy: { lastUpdated: 'desc' },
       include: {
         warehouse: { select: { name: true } },
-        item: { select: { name: true, sku: true, price: true, description: true, inventoryType: true, clientId: true, reorderLevel: true, category: { select: { name: true } }, unit: { select: { shortName: true } } } }
+        item: { select: { image: true, name: true, sku: true, price: true, description: true, inventoryType: true, clientId: true, reorderLevel: true, category: { select: { name: true } }, unit: { select: { shortName: true } } } }
       }
     }),
     prisma.inventoryStock.count({ where })
