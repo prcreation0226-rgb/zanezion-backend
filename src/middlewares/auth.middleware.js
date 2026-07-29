@@ -123,6 +123,28 @@ export const checkPermission = (routeIdentifier, action) => {
 
       const roleNameLower = roleName.toLowerCase();
       console.log(`[RBAC] DEBUG: Role=${roleName}, Route=${routeIdentifier}, Action=${action}`);
+
+      // --- RBAC SPECIFIC FOR INVENTORY, VENDORS, WAREHOUSES, STOCK ---
+      // Full CRUD: Admin, SaaS Client, Procurement ONLY.
+      // Read-Only: Inventory, Logistics, Customer, and all other portals.
+      const rbacRestrictedModules = ['ITEMS', 'STOCK', 'VENDORS', 'WAREHOUSES'];
+      if (rbacRestrictedModules.includes(routeIdentifier)) {
+        if (action === 'READ') {
+          console.log(`[RBAC] Role: ${roleName} | Route: ${routeIdentifier} | Action: READ | Result: ALLOWED (Read-Only Access)`);
+          return next();
+        }
+
+        const allowedWriteRoles = ['super_admin', 'superadmin', 'admin', 'saas_client', 'saas client', 'business_client', 'business client', 'client', 'procurement'];
+        const isAllowedWrite = allowedWriteRoles.includes(roleNameLower);
+
+        if (!isAllowedWrite) {
+          console.log(`[RBAC] Role: ${roleName} | Route: ${routeIdentifier} | Action: ${action} | Result: DENIED (Restricted to Admin, SaaS Client, Procurement)`);
+          return sendResponse(res, 403, 'Forbidden: Insufficient permissions for Inventory, Vendor, or Warehouse modifications');
+        }
+
+        return next();
+      }
+
       const isCustomer = ['business_client', 'business client', 'individual_client', 'individual client', 'unknown', 'guest', 'client', 'saas_client', 'saas client', 'customer'].includes(roleNameLower);
       if (isCustomer && action === 'READ' && ['ORDERS', 'CLIENTS', 'USERS', 'VENDORS', 'DELIVERIES', 'WAREHOUSES', 'INVOICES', 'PURCHASE_REQUESTS', 'QUOTATIONS', 'RFQS', 'PURCHASE_ORDERS', 'ITEMS', 'STOCK', 'PLANS', 'TRACKING', 'MISSIONS', 'ROUTES', 'URGENT', 'SUPPORT', 'CONCIERGE', 'ROLES', 'PROJECTS', 'DEPARTMENTS', 'DESIGNATIONS'].includes(routeIdentifier)) {
         console.log(`[RBAC] Role: ${roleName} | Route: ${routeIdentifier} | Action: READ | Result: ALLOWED (Customer Bypass)`);
