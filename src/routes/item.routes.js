@@ -11,7 +11,7 @@ router.use(authenticate);
 
 router.get('/', checkPermission('ITEMS', 'READ'), itemController.getItems);
 router.get('/:id', checkPermission('ITEMS', 'READ'), itemController.getItemById);
-router.post('/upload-image', checkPermission('ITEMS', 'CREATE'), upload.single('image'), itemController.uploadItemImage);
+router.post('/upload-image', upload.single('image'), itemController.uploadItemImage);
 router.post('/', checkPermission('ITEMS', 'CREATE'), validate(createItemSchema), itemController.createItem);
 router.put('/:id', checkPermission('ITEMS', 'UPDATE'), validate(updateItemSchema), itemController.updateItem);
 router.delete('/:id', checkPermission('ITEMS', 'DELETE'), itemController.deleteItem);
