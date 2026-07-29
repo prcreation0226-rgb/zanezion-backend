@@ -628,6 +628,7 @@ model Item {
   sku           String
   name          String
   description   String?  @db.Text
+  image         String?  @db.Text
   reorderLevel  Float    @default(0)
   inventoryType String   @default("INTERNAL") // INTERNAL, MARKETPLACE
   clientId      Int?

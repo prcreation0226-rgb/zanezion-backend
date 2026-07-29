@@ -1,8 +1,37 @@
 import * as itemService from '../services/item.service.js';
 import { sendResponse } from '../utils/response.js';
 import prisma from '../config/db.js';
+import cloudinary from '../config/cloudinary.js';
 
 import { resolveTenantId } from '../utils/tenantResolver.js';
+
+export const uploadItemImage = async (req, res, next) => {
+  try {
+    if (!req.file) {
+      return sendResponse(res, 400, 'No image file uploaded');
+    }
+
+    const baseFolder = process.env.CLOUDINARY_FOLDER || 'zanezion';
+    const uploadStream = () => {
+      return new Promise((resolve, reject) => {
+        const stream = cloudinary.uploader.upload_stream(
+          { folder: `${baseFolder}/inventory`, resource_type: 'auto' },
+          (error, result) => {
+            if (error) return reject(error);
+            resolve(result);
+          }
+        );
+        stream.end(req.file.buffer);
+      });
+    };
+
+    const uploadResult = await uploadStream();
+    sendResponse(res, 200, 'Image uploaded successfully', { url: uploadResult.secure_url });
+  } catch (error) {
+    next(error);
+  }
+};
+
 export const createItem = async (req, res, next) => {
   try {
     const isSuperAdmin = req.user.role?.name === 'SUPER_ADMIN';
