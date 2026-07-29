@@ -17,17 +17,20 @@ export const createItem = async (req, res, next) => {
 
 const checkIsClient = (user) => {
   const roleName = String(user?.role?.name || user?.role || '').toUpperCase();
+  if (roleName === 'SAAS_CLIENT' || roleName === 'BUSINESS_CLIENT') return false;
   return roleName.includes('CLIENT') || roleName.includes('CUSTOMER');
 };
 
 export const getItems = async (req, res, next) => {
   try {
-    const isSuperAdmin = req.user.role?.name === 'SUPER_ADMIN';
-    const isClient = checkIsClient(req.user);
+    const roleName = String(req.user?.role?.name || req.user?.role || '').toUpperCase();
+    const isSuperAdmin = roleName === 'SUPER_ADMIN' || roleName === 'SUPERADMIN';
     const isSaaSTenant = req.user.tenantId && Number(req.user.tenantId) !== 1;
+    const isClient = checkIsClient(req.user) && !isSaaSTenant;
+
     const tenantIdToFilter = isSuperAdmin && !req.query.tenantId ? null :
-                             isClient ? [1, req.user.tenantId].filter(t => t !== null && t !== undefined).map(Number) :
                              isSaaSTenant ? Number(req.user.tenantId) :
+                             isClient ? [1, req.user.tenantId].filter(t => t !== null && t !== undefined).map(Number) :
                              (req.query.tenantId ? Number(req.query.tenantId) : req.user.tenantId);
 
     const result = await itemService.getItems(tenantIdToFilter, req.query);
