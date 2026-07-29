@@ -7,9 +7,17 @@ import { resolveTenantId } from '../utils/tenantResolver.js';
 
 export const uploadItemImage = async (req, res, next) => {
   try {
+    console.log('📸 [BACKEND_IMAGE_UPLOAD] Incoming file upload request...');
     if (!req.file) {
+      console.warn('⚠️ [BACKEND_IMAGE_UPLOAD] No req.file found in request payload');
       return sendResponse(res, 400, 'No image file uploaded');
     }
+
+    console.log('📁 [BACKEND_IMAGE_UPLOAD_FILE_INFO]', {
+      name: req.file.originalname,
+      mimetype: req.file.mimetype,
+      size: `${(req.file.size / 1024).toFixed(2)} KB`
+    });
 
     const baseFolder = process.env.CLOUDINARY_FOLDER || 'zanezion';
     const uploadStream = () => {
@@ -17,7 +25,11 @@ export const uploadItemImage = async (req, res, next) => {
         const stream = cloudinary.uploader.upload_stream(
           { folder: `${baseFolder}/inventory`, resource_type: 'image' },
           (error, result) => {
-            if (error) return reject(error);
+            if (error) {
+              console.error('❌ [CLOUDINARY_UPLOAD_ERROR]', error);
+              return reject(error);
+            }
+            console.log('✅ [CLOUDINARY_UPLOAD_SUCCESS] Cloudinary URL:', result?.secure_url);
             resolve(result);
           }
         );
@@ -26,8 +38,10 @@ export const uploadItemImage = async (req, res, next) => {
     };
 
     const uploadResult = await uploadStream();
+    console.log('🎉 [BACKEND_IMAGE_UPLOAD_COMPLETE] Returning URL to client:', uploadResult.secure_url);
     sendResponse(res, 200, 'Image uploaded successfully', { url: uploadResult.secure_url });
   } catch (error) {
+    console.error('💥 [BACKEND_IMAGE_UPLOAD_FAILED]', error);
     next(error);
   }
 };
