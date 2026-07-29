@@ -15,7 +15,7 @@ export const uploadItemImage = async (req, res, next) => {
     const uploadStream = () => {
       return new Promise((resolve, reject) => {
         const stream = cloudinary.uploader.upload_stream(
-          { folder: `${baseFolder}/inventory`, resource_type: 'auto' },
+          { folder: `${baseFolder}/inventory`, resource_type: 'image' },
           (error, result) => {
             if (error) return reject(error);
             resolve(result);
