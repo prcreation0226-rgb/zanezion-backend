@@ -1,1 +1,1 @@
-// Empty diagnostic file
+// Diagnostic utility

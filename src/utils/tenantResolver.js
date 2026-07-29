@@ -48,20 +48,18 @@ export const resolveTenantIdForSaasManagement = (req) => {
   return req.user?.tenantId || 1;
 };
 
-/**
- * Special resolver for operational endpoints (Deliveries, Missions, Orders).
- * Allows ZaneZion central operational staff to see/manage data across ALL tenants.
- */
 export const resolveTenantIdForOperations = (req) => {
   const rawRole = typeof req.user?.role === 'string' ? req.user.role : (req.user?.role?.name || req.user?.roleName || '');
   const roleName = String(rawRole).toUpperCase();
   const isOperationalStaff = [
-    'SUPER_ADMIN', 'SUPERADMIN', 'ADMIN', 'LOGISTICS', 'OPERATIONS', 'STAFF', 'FIELD_STAFF', 'CONCIERGE', 'SECURITY', 'DRIVER'
+    'SUPER_ADMIN', 'SUPERADMIN', 'ADMIN', 'LOGISTICS', 'OPERATIONS', 'STAFF', 'FIELD_STAFF', 'CONCIERGE', 'SECURITY', 'DRIVER', 'INVENTORY', 'PROCUREMENT', 'SAAS_CLIENT', 'BUSINESS_CLIENT'
   ].includes(roleName);
-  const isMasterTenant = req.user?.tenantId === 1 || !req.user?.tenantId;
 
-  if (isOperationalStaff && isMasterTenant) {
-    return null; // Cross-tenant visibility only for central master-tenant operational staff
+  if (isOperationalStaff) {
+    if (req.query?.tenantId) {
+      return Number(req.query.tenantId);
+    }
+    return null; // Cross-tenant visibility for central operational and portal management staff
   }
 
   // Fallback to standard tenant resolution

@@ -54,31 +54,6 @@ const releaseReservedStock = async (tx, items) => {
 export const createOrder = async (data, performerId, tenantId) => {
   const { items, ...orderData } = data;
 
-  const validOrderItems = [];
-  const customItems = [];
-
-  if (items && Array.isArray(items)) {
-    for (const item of items) {
-      if (item.itemId && item.warehouseId) {
-        validOrderItems.push({
-          itemId: Number(item.itemId),
-          warehouseId: Number(item.warehouseId),
-          quantity: Number(item.quantity || item.qty || 1),
-          unitPrice: Number(item.unitPrice || item.price || 0)
-        });
-      } else {
-        customItems.push(item);
-      }
-    }
-  }
-
-  if (customItems.length > 0) {
-    orderData.metadata = {
-      ...(orderData.metadata || {}),
-      customItems
-    };
-  }
-
   let client = null;
   if (data.clientId) {
     client = await clientRepo.findClientById(Number(data.clientId));
@@ -103,13 +78,68 @@ export const createOrder = async (data, performerId, tenantId) => {
   }
 
   orderData.clientId = client.id;
+  const orderTenantId = client ? Number(client.tenantId) : (tenantId || 1);
+
+  // Auto-resolve default warehouse if missing on items
+  let defaultWarehouse = await prisma.warehouse.findFirst({ where: { tenantId: orderTenantId } });
+  if (!defaultWarehouse) {
+    defaultWarehouse = await prisma.warehouse.findFirst();
+  }
+
+  const validOrderItems = [];
+  const customItems = [];
+
+  if (items && Array.isArray(items)) {
+    for (const item of items) {
+      const rawItemId = item.itemId || item.id;
+      const parsedItemId = rawItemId != null && !isNaN(Number(rawItemId)) ? Number(rawItemId) : null;
+      const rawWhId = item.warehouseId || item.warehouse_id;
+      const parsedWhId = rawWhId != null && !isNaN(Number(rawWhId)) ? Number(rawWhId) : (defaultWarehouse?.id || 1);
+
+      if (parsedItemId && parsedWhId) {
+        validOrderItems.push({
+          itemId: parsedItemId,
+          warehouseId: parsedWhId,
+          quantity: Number(item.quantity || item.qty || 1),
+          unitPrice: Number(item.unitPrice || item.price || 0)
+        });
+      } else {
+        customItems.push(item);
+      }
+    }
+  }
+
+  const existingMeta = typeof data.metadata === 'string'
+    ? JSON.parse(data.metadata)
+    : (data.metadata || {});
+
+  const routedDept = String(
+    data.routed_department ||
+    data.route_department ||
+    existingMeta.routed_department ||
+    existingMeta.currentDepartment ||
+    (data.status === 'admin_review' || data.status === 'pending_review' ? 'admin' : 'operations')
+  ).toLowerCase();
+
+  const initialHistory = [{
+    department: routedDept,
+    previousDepartment: null,
+    movedBy: performerId,
+    movedAt: new Date().toISOString(),
+    remarks: 'Order placed'
+  }];
+
+  orderData.metadata = {
+    ...existingMeta,
+    currentDepartment: routedDept,
+    workflowHistory: Array.isArray(existingMeta.workflowHistory) ? existingMeta.workflowHistory : initialHistory,
+    ...(customItems.length > 0 ? { customItems } : {})
+  };
 
   const employee = await prisma.employee.findUnique({ where: { userId: performerId } });
-
   orderData.createdById = employee ? employee.id : 1;
   orderData.status = data.status || orderData.status || 'draft';
 
-  const orderTenantId = client ? Number(client.tenantId) : (tenantId || 1);
   const newOrder = await orderRepo.createOrder(orderData, validOrderItems, orderTenantId);
 
   await logAudit({
@@ -119,6 +149,19 @@ export const createOrder = async (data, performerId, tenantId) => {
     newValue: newOrder,
     performedBy: performerId
   });
+
+  try {
+    await prisma.notification.create({
+      data: {
+        title: 'New Order Created',
+        message: `Order #${newOrder.id} (${newOrder.orderNumber}) placed by ${client.companyName}`,
+        type: 'ORDER_CREATED',
+        userId: performerId
+      }
+    });
+  } catch (notifErr) {
+    // Non-blocking notification dispatch
+  }
 
   return newOrder;
 };

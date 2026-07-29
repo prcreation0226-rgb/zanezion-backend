@@ -13,7 +13,11 @@ export const createOrder = async (req, res, next) => {
     let incomingCompanyId = req.body.companyId ?? req.body.company_id;
 
     const isBusinessClient = req.user.role?.name === 'BUSINESS_CLIENT' || req.user.role?.name === 'CLIENT';
-    const tenantIdToUse = req.body.tenantId ? Number(req.body.tenantId) : resolveTenantId(req);
+    const tenantIdToUse = req.body.tenantId
+      ? Number(req.body.tenantId)
+      : (incomingCompanyId && !isNaN(Number(incomingCompanyId)) && Number(incomingCompanyId) > 0
+          ? Number(incomingCompanyId)
+          : resolveTenantId(req));
 
     // Try to parse clientId from payload
     let parsedClientId = incomingClientId && incomingClientId !== "" && incomingClientId !== "CLT-GUEST" ? Number(incomingClientId) : null;
@@ -71,13 +75,23 @@ export const createOrder = async (req, res, next) => {
 
 export const getOrders = async (req, res, next) => {
   try {
+    const rawRole = typeof req.user?.role === 'string' ? req.user.role : (req.user?.role?.name || req.user?.roleName || '');
+    const roleName = String(rawRole).toUpperCase();
+    const isStaffOrAdmin = ['SUPER_ADMIN', 'SUPERADMIN', 'ADMIN', 'OPERATIONS', 'LOGISTICS', 'CONCIERGE', 'SAAS_CLIENT', 'BUSINESS_CLIENT', 'STAFF', 'PROCUREMENT', 'INVENTORY'].includes(roleName);
+
     const rawOrderType = String(req.query.orderType || '').toUpperCase();
     const isOperationalQuery = ['CHAUFFEUR', 'DELIVERY', 'SERVICE', 'LOGISTICS', 'MISSION'].includes(rawOrderType);
-    const tenantIdToFilter = isOperationalQuery ? resolveTenantIdForOperations(req) : resolveTenantId(req);
+    const tenantIdToFilter = (isOperationalQuery || isStaffOrAdmin) ? resolveTenantIdForOperations(req) : resolveTenantId(req);
 
-    const userRoleStr = String(req.user.role?.name || req.user.role || '').toUpperCase();
-    if (['INDIVIDUAL_CLIENT', 'CUSTOMER'].includes(userRoleStr)) {
-      req.query.clientId = req.user.clientId;
+    if (['INDIVIDUAL_CLIENT', 'CUSTOMER'].includes(roleName)) {
+      let resolvedClientId = req.user.clientId;
+      if (!resolvedClientId) {
+        const clientRec = await prisma.client.findFirst({ where: { email: req.user.email } });
+        if (clientRec) resolvedClientId = clientRec.id;
+      }
+      if (resolvedClientId) {
+        req.query.clientId = resolvedClientId;
+      }
     }
 
     const result = await orderService.getOrders(tenantIdToFilter, req.query);

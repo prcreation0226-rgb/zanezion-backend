@@ -134,18 +134,34 @@ export const findAllOrders = async (tenantId, query) => {
   let mappedOrders = allOrders.map(o => {
     const { metadata, ...rest } = o;
     const metadataObj = typeof metadata === 'string' ? JSON.parse(metadata) : (metadata || {});
+    const itemsArr = (o.items && o.items.length > 0)
+      ? o.items
+      : (Array.isArray(metadataObj.customItems) ? metadataObj.customItems : []);
+
     return {
       ...rest,
+      items: itemsArr,
       metadata: metadataObj,
       ...metadataObj
     };
   });
 
-  // Post-filter by department (JSON metadata fields)
+  // Post-filter by department (JSON metadata fields + status aliases)
   if (applyCurrentDeptFilter) {
-    mappedOrders = mappedOrders.filter(o =>
-      String(o.metadata?.currentDepartment || o.status || '').toLowerCase() === applyCurrentDeptFilter
-    );
+    mappedOrders = mappedOrders.filter(o => {
+      const metaDept = String(o.metadata?.currentDepartment || o.metadata?.routed_department || o.metadata?.route_department || '').toLowerCase();
+      if (metaDept && metaDept === applyCurrentDeptFilter) return true;
+
+      const rawStatus = String(o.status || '').toLowerCase();
+      if (applyCurrentDeptFilter === 'admin' && ['admin', 'admin_review', 'pending_review', 'draft'].includes(rawStatus)) return true;
+      if (applyCurrentDeptFilter === 'operations' && ['operations', 'submitted', 'review', 'approved', 'ready_for_delivery'].includes(rawStatus)) return true;
+      if (applyCurrentDeptFilter === 'procurement' && ['procurement', 'purchase_requested'].includes(rawStatus)) return true;
+      if (applyCurrentDeptFilter === 'inventory' && ['inventory', 'stock_reserved'].includes(rawStatus)) return true;
+      if (applyCurrentDeptFilter === 'logistics' && ['logistics', 'dispatched', 'in_transit'].includes(rawStatus)) return true;
+      if (applyCurrentDeptFilter === 'concierge' && ['concierge'].includes(rawStatus)) return true;
+
+      return rawStatus === applyCurrentDeptFilter;
+    });
   }
   if (applyPassedThroughFilter) {
     mappedOrders = mappedOrders.filter(o => {
