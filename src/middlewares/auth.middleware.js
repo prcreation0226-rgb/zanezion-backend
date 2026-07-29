@@ -125,8 +125,8 @@ export const checkPermission = (routeIdentifier, action) => {
       console.log(`[RBAC] DEBUG: Role=${roleName}, Route=${routeIdentifier}, Action=${action}`);
 
       // --- RBAC SPECIFIC FOR INVENTORY, VENDORS, WAREHOUSES, STOCK ---
-      // Full CRUD: Admin, SaaS Client, Procurement ONLY.
-      // Read-Only: Inventory, Logistics, Customer, and all other portals.
+      // Full CRUD: Admin and SaaS Client ONLY.
+      // Read-Only: Procurement, Inventory, Logistics, Customer, and all other portals.
       const rbacRestrictedModules = ['ITEMS', 'STOCK', 'VENDORS', 'WAREHOUSES'];
       if (rbacRestrictedModules.includes(routeIdentifier)) {
         if (action === 'READ') {
@@ -134,11 +134,11 @@ export const checkPermission = (routeIdentifier, action) => {
           return next();
         }
 
-        const allowedWriteRoles = ['super_admin', 'superadmin', 'admin', 'saas_client', 'saas client', 'business_client', 'business client', 'client', 'procurement'];
+        const allowedWriteRoles = ['super_admin', 'superadmin', 'admin', 'saas_client', 'saas client', 'business_client', 'business client', 'client'];
         const isAllowedWrite = allowedWriteRoles.includes(roleNameLower);
 
         if (!isAllowedWrite) {
-          console.log(`[RBAC] Role: ${roleName} | Route: ${routeIdentifier} | Action: ${action} | Result: DENIED (Restricted to Admin, SaaS Client, Procurement)`);
+          console.log(`[RBAC] Role: ${roleName} | Route: ${routeIdentifier} | Action: ${action} | Result: DENIED (Restricted to Admin and SaaS Client)`);
           return sendResponse(res, 403, 'Forbidden: Insufficient permissions for Inventory, Vendor, or Warehouse modifications');
         }
 
