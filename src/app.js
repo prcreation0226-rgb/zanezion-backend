@@ -9,17 +9,29 @@ const app = express();
 app.use(helmet());
 app.use(
   cors({
-    origin: [
-      "https://zanezion.kiaansoftware.com",
-      "http://localhost:5714",
-      "http://localhost:5173",
-      "http://localhost:5174",
-      "http://localhost:3000"
-    ],
-    methods: ["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"],
-    allowedHeaders: ["Content-Type", "Authorization"]
+    origin: (origin, callback) => {
+      // Allow requests with no origin (e.g., curl, Postman, mobile apps)
+      if (!origin) return callback(null, true);
+
+      const allowedOrigins = [
+        'https://zanezion.kiaansoftware.com',
+      ];
+
+      // Allow any localhost or 127.0.0.1 port for local development
+      const isLocalhost = /^https?:\/\/(localhost|127\.0\.0\.1)(:\d+)?$/.test(origin);
+
+      if (isLocalhost || allowedOrigins.includes(origin)) {
+        callback(null, true);
+      } else {
+        callback(new Error(`CORS: Origin '${origin}' not allowed`));
+      }
+    },
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization'],
+    credentials: true
   })
 );
+
 app.use(express.json({ limit: '50mb' }));
 app.use(express.urlencoded({ limit: '50mb', extended: true }));
 
