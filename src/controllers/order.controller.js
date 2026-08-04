@@ -60,14 +60,27 @@ export const createOrder = async (req, res, next) => {
     // Safely parse vendorId and companyId
     req.body.vendorId = incomingVendorId && incomingVendorId !== "" ? Number(incomingVendorId) : null;
     req.body.companyId = incomingCompanyId && incomingCompanyId !== "" ? Number(incomingCompanyId) : null;
+    const existingMeta = typeof req.body.metadata === 'string'
+      ? (JSON.parse(req.body.metadata) || {})
+      : (req.body.metadata || {});
+
+    req.body.metadata = {
+      ...existingMeta,
+      customer_id: req.user.id,
+      created_by: req.user.id,
+      user_id: req.user.id,
+      email: req.user.email,
+      customer_name: req.user.name || 'Guest Client',
+      client_name: req.user.name || 'Guest Client',
+    };
 
     // Remove old snake_case keys so Prisma doesn't crash on unknown args
     delete req.body.customer_id;
     delete req.body.vendor_id;
     delete req.body.company_id;
 
-    const order = await orderService.createOrder(req.body, req.user.id, tenantIdToUse);
-    sendResponse(res, 201, 'Order created successfully', order);
+    const newOrder = await orderService.createOrder(req.body, req.user.id, tenantIdToUse);
+    sendResponse(res, 201, 'Order created successfully', newOrder);
   } catch (error) {
     next(error);
   }
@@ -86,9 +99,18 @@ export const getOrders = async (req, res, next) => {
     if (['INDIVIDUAL_CLIENT', 'CUSTOMER'].includes(roleName)) {
       let resolvedClientId = req.user.clientId;
       if (!resolvedClientId) {
-        const clientRec = await prisma.client.findFirst({ where: { email: req.user.email } });
+        const clientRec = await prisma.client.findFirst({
+          where: {
+            OR: [
+              { email: req.user.email },
+              { companyName: req.user.name || '' }
+            ]
+          }
+        });
         if (clientRec) resolvedClientId = clientRec.id;
       }
+      req.query.user_id = req.user.id;
+      req.query.customer_email = req.user.email;
       if (resolvedClientId) {
         req.query.clientId = resolvedClientId;
       }

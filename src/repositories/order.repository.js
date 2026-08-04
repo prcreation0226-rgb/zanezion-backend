@@ -104,14 +104,15 @@ export const findOrderById = async (id) => {
 };
 
 export const findAllOrders = async (tenantId, query) => {
-  const { page = 1, limit = 10, search = '', status, clientId, orderType, currentDept, passedThrough } = query;
+  const { page = 1, limit = 10, search = '', status, clientId, user_id, customer_email, orderType, currentDept, passedThrough } = query;
   const skip = (page - 1) * limit;
 
+  const isCustomerFilter = !!(user_id || customer_email);
   const where = {
     ...(tenantId !== null && { tenantId }),
     ...(search && { orderNumber: { contains: search } }),
     ...(status && { status }),
-    ...(clientId && { clientId: Number(clientId) }),
+    ...(!isCustomerFilter && clientId && { clientId: Number(clientId) }),
     ...(orderType && { orderType })
   };
 
@@ -145,6 +146,25 @@ export const findAllOrders = async (tenantId, query) => {
       ...metadataObj
     };
   });
+
+  // For customer queries, ensure orders matching customer's user_id, email, or clientId are included
+  if (isCustomerFilter) {
+    const filterClientId = clientId ? String(clientId) : null;
+    const filterUserId = user_id ? String(user_id) : null;
+    const filterEmail = customer_email ? String(customer_email).toLowerCase() : null;
+
+    mappedOrders = mappedOrders.filter(o => {
+      const oClientId = String(o.clientId || o.client_id || '');
+      const oUserId = String(o.customer_id || o.created_by || o.createdById || o.userId || o.user_id || '');
+      const oEmail = String(o.email || o.client_email || o.customer_email || '').toLowerCase();
+
+      if (filterClientId && oClientId === filterClientId) return true;
+      if (filterUserId && (oUserId === filterUserId || oClientId === filterUserId)) return true;
+      if (filterEmail && oEmail && oEmail === filterEmail) return true;
+
+      return false;
+    });
+  }
 
   // Post-filter by department (JSON metadata fields + status aliases)
   if (applyCurrentDeptFilter) {
