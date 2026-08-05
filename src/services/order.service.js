@@ -125,7 +125,13 @@ export const createOrder = async (data, performerId, tenantId) => {
       const rawWhId = item.warehouseId || item.warehouse_id;
       const parsedWhId = rawWhId != null && !isNaN(Number(rawWhId)) ? Number(rawWhId) : (defaultWarehouse?.id || 1);
 
-      if (parsedItemId && parsedWhId) {
+      let dbItemExists = false;
+      if (parsedItemId) {
+        const dbItem = await prisma.item.findUnique({ where: { id: parsedItemId } });
+        if (dbItem) dbItemExists = true;
+      }
+
+      if (parsedItemId && parsedWhId && dbItemExists) {
         validOrderItems.push({
           itemId: parsedItemId,
           warehouseId: parsedWhId,
@@ -160,6 +166,17 @@ export const createOrder = async (data, performerId, tenantId) => {
   } else {
     orderData.totalAmount = passedTotal;
   }
+
+  const existingMeta = typeof orderData.metadata === 'string'
+    ? (JSON.parse(orderData.metadata) || {})
+    : (orderData.metadata || {});
+
+  const metaCustomItems = Array.isArray(existingMeta.customItems) ? existingMeta.customItems : [];
+  const itemsToSave = customItems.length > 0 ? customItems : (items || []);
+  orderData.metadata = {
+    ...existingMeta,
+    customItems: metaCustomItems.length > 0 ? metaCustomItems : itemsToSave
+  };
 
   const employee = await prisma.employee.findUnique({ where: { userId: performerId } });
   orderData.createdById = employee ? employee.id : 1;
