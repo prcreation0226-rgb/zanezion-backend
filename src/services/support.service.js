@@ -73,18 +73,29 @@ export const createEvent = async (data, performerId, tenantId) => {
   const existing = await supportRepository.findEventById(eventId, tenantId);
   if (existing) throw new AppError('Event ID already exists', 400);
 
+  const parsedCid = data.client_id ? Number(String(data.client_id).replace('CLT-', '')) : null;
+  const clientId = Number.isFinite(parsedCid) && parsedCid > 0 ? parsedCid : null;
+
+  let moodBoardUrl = (data.mood_board_url || data.moodBoardUrl || '').trim();
+  if (moodBoardUrl && !moodBoardUrl.startsWith('http://') && !moodBoardUrl.startsWith('https://')) {
+    moodBoardUrl = `https://${moodBoardUrl}`;
+  }
+
+  const user = performerId ? await prisma.user.findUnique({ where: { id: Number(performerId) } }) : null;
+  const resolvedPlanner = data.planner_name || data.plannerName || (data.client && data.client.toLowerCase() !== 'personal client' ? data.client : null) || user?.name || '';
+
   const payload = {
     eventId,
     name: data.name || data.title || 'Support Event',
     date: data.date || data.event_date || '',
     location: data.location || '',
     status: data.status || 'Scheduled',
-    clientId: data.client_id ? Number(data.client_id) : null,
-    managerId: data.manager_id ? Number(data.manager_id) : null,
+    clientId,
+    managerId: data.manager_id && !isNaN(Number(data.manager_id)) ? Number(data.manager_id) : null,
     specialRequests: data.special_requests || '',
-    plannerName: data.planner_name || '',
+    plannerName: resolvedPlanner,
     guestCount: data.guest_count ? Number(data.guest_count) : null,
-    moodBoardUrl: data.mood_board_url || '',
+    moodBoardUrl,
     tenantId
   };
 
@@ -101,17 +112,25 @@ export const updateEvent = async (id, data, tenantId, performerId) => {
   const existing = await supportRepository.findEventById(id, tenantId);
   if (!existing) throw new AppError('Event not found', 404);
 
+  let updatedMoodBoard = data.mood_board_url !== undefined ? data.mood_board_url : (data.moodBoardUrl !== undefined ? data.moodBoardUrl : existing.moodBoardUrl);
+  if (typeof updatedMoodBoard === 'string' && updatedMoodBoard.trim() && !updatedMoodBoard.trim().startsWith('http://') && !updatedMoodBoard.trim().startsWith('https://')) {
+    updatedMoodBoard = `https://${updatedMoodBoard.trim()}`;
+  }
+
+  const updatedCid = data.client_id !== undefined ? (data.client_id ? Number(String(data.client_id).replace('CLT-', '')) : null) : existing.clientId;
+  const clientId = Number.isFinite(updatedCid) && updatedCid > 0 ? updatedCid : null;
+
   const payload = {
     name: data.name !== undefined ? data.name : (data.title !== undefined ? data.title : existing.name),
     date: data.date !== undefined ? data.date : (data.event_date !== undefined ? data.event_date : existing.date),
     location: data.location !== undefined ? data.location : existing.location,
     status: data.status !== undefined ? data.status : existing.status,
-    clientId: data.client_id !== undefined ? (data.client_id ? Number(data.client_id) : null) : existing.clientId,
+    clientId,
     managerId: data.manager_id !== undefined ? (data.manager_id ? Number(data.manager_id) : null) : existing.managerId,
     specialRequests: data.special_requests !== undefined ? data.special_requests : existing.specialRequests,
     plannerName: data.planner_name !== undefined ? data.planner_name : existing.plannerName,
     guestCount: data.guest_count !== undefined ? (data.guest_count ? Number(data.guest_count) : null) : existing.guestCount,
-    moodBoardUrl: data.mood_board_url !== undefined ? data.mood_board_url : existing.moodBoardUrl
+    moodBoardUrl: updatedMoodBoard
   };
 
   const updated = await supportRepository.updateEvent(id, tenantId, payload);

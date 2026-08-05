@@ -128,7 +128,7 @@ export const findAllOrders = async (tenantId, query) => {
     orderBy: { createdAt: 'desc' },
     include: {
       items: { include: { item: true } },
-      client: { select: { companyName: true, clientCode: true } }
+      client: { select: { companyName: true, clientCode: true, contactPerson: true, email: true } }
     }
   });
 
@@ -155,8 +155,8 @@ export const findAllOrders = async (tenantId, query) => {
 
     mappedOrders = mappedOrders.filter(o => {
       const oClientId = String(o.clientId || o.client_id || '');
-      const oUserId = String(o.customer_id || o.created_by || o.createdById || o.userId || o.user_id || '');
-      const oEmail = String(o.email || o.client_email || o.customer_email || '').toLowerCase();
+      const oUserId = String(o.customer_id || o.created_by || o.createdById || o.userId || o.user_id || o.metadata?.userId || o.metadata?.user_id || o.metadata?.created_by || '');
+      const oEmail = String(o.email || o.client_email || o.customer_email || o.metadata?.email || o.metadata?.user_email || o.metadata?.customer_email || '').toLowerCase();
 
       if (filterClientId && oClientId === filterClientId) return true;
       if (filterUserId && (oUserId === filterUserId || oClientId === filterUserId)) return true;

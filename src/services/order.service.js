@@ -56,16 +56,45 @@ export const createOrder = async (data, performerId, tenantId) => {
 
   let client = null;
   if (data.clientId) {
-    client = await clientRepo.findClientById(Number(data.clientId));
-    if (!client) {
+    const cid = Number(data.clientId);
+    if (!isNaN(cid)) {
+      client = await clientRepo.findClientById(cid);
+      if (!client) {
+        client = await prisma.client.findFirst({
+          where: {
+            OR: [
+              { id: cid },
+              { userId: cid }
+            ]
+          }
+        });
+      }
+    }
+  }
+
+  // If still no client found, try finding client matching performerId (logged in user)
+  if (!client && performerId) {
+    const user = await prisma.user.findUnique({ where: { id: Number(performerId) } });
+    if (user && user.email) {
       client = await prisma.client.findFirst({
-        where: {
-          OR: [
-            { id: Number(data.clientId) },
-            { userId: Number(data.clientId) }
-          ]
-        }
+        where: { email: user.email }
       });
+      // If client profile doesn't exist for this user, auto-create a dedicated client record with user's real name
+      if (!client) {
+        const clientCode = `CLT-${Date.now().toString().slice(-6)}`;
+        client = await prisma.client.create({
+          data: {
+            tenantId: tenantId || 1,
+            clientCode,
+            companyName: user.name || data.client || 'Personal Client',
+            contactPerson: user.name || 'Personal Client',
+            email: user.email,
+            phone: user.phone || 'N/A',
+            status: 'active',
+            clientType: 'Personal'
+          }
+        });
+      }
     }
   }
 
@@ -109,36 +138,32 @@ export const createOrder = async (data, performerId, tenantId) => {
     }
   }
 
-  const existingMeta = typeof data.metadata === 'string'
-    ? JSON.parse(data.metadata)
-    : (data.metadata || {});
+  const passedTotal = Number(
+    data.totalAmount ||
+    data.total_amount ||
+    data.total ||
+    data.estimated_total ||
+    data.amount ||
+    data.chauffeurFee ||
+    data.chauffeur_fee ||
+    data.fee ||
+    existingMeta.chauffeurFee ||
+    existingMeta.chauffeur_fee ||
+    existingMeta.total_amount ||
+    (customItems[0] && (customItems[0].chauffeurFee || customItems[0].chauffeur_fee || customItems[0].price || customItems[0].total)) ||
+    0
+  );
 
-  const routedDept = String(
-    data.routed_department ||
-    data.route_department ||
-    existingMeta.routed_department ||
-    existingMeta.currentDepartment ||
-    (data.status === 'admin_review' || data.status === 'pending_review' ? 'admin' : 'operations')
-  ).toLowerCase();
-
-  const initialHistory = [{
-    department: routedDept,
-    previousDepartment: null,
-    movedBy: performerId,
-    movedAt: new Date().toISOString(),
-    remarks: 'Order placed'
-  }];
-
-  orderData.metadata = {
-    ...existingMeta,
-    currentDepartment: routedDept,
-    workflowHistory: Array.isArray(existingMeta.workflowHistory) ? existingMeta.workflowHistory : initialHistory,
-    ...(customItems.length > 0 ? { customItems } : {})
-  };
+  if (validOrderItems.length > 0) {
+    const calcTotal = validOrderItems.reduce((acc, i) => acc + (i.quantity * i.unitPrice), 0);
+    orderData.totalAmount = calcTotal > 0 ? calcTotal : passedTotal;
+  } else {
+    orderData.totalAmount = passedTotal;
+  }
 
   const employee = await prisma.employee.findUnique({ where: { userId: performerId } });
   orderData.createdById = employee ? employee.id : 1;
-  orderData.status = data.status || orderData.status || 'draft';
+  orderData.status = data.status || (isMarketplaceOrder ? 'operation' : 'draft');
 
   const newOrder = await orderRepo.createOrder(orderData, validOrderItems, orderTenantId);
 
