@@ -233,8 +233,17 @@ export const submitPOD = async (id, podData, tenantId, performerId) => {
       await missionRepo.createPOD(tx, mission.deliveryId, mission.tenantId, podData);
     }
 
-    // 2. Update Mission
+    // 2. Update Mission & Linked Orders
     await missionRepo.updateMissionStatus(tx, mission.id, 'completed', { endDate: new Date() });
+
+    if (mission.orderId) {
+      try {
+        await tx.order.update({
+          where: { id: mission.orderId },
+          data: { status: 'completed' }
+        });
+      } catch (_) {}
+    }
 
     // 3. Update Delivery & Calculate Earnings
     if (mission.deliveryId) {
@@ -304,19 +313,35 @@ export const convertProjectToMission = async (projectId, missionData, tenantId, 
   const employee = await prisma.employee.findUnique({ where: { userId: performerId } });
   const assignedEmployeeId = employee ? employee.id : 1;
 
+  const metaObj = typeof project.metadata === 'string' ? (() => { try { return JSON.parse(project.metadata); } catch { return {}; } })() : (project.metadata || {});
+  const origOrderRef = metaObj.orderRef || metaObj.order_ref || metaObj.orderId || metaObj.order_id || null;
+
   const missionPayload = {
-    orderId: project.id,
+    orderId: origOrderRef ? Number(origOrderRef) : project.id,
     assignedEmployeeId,
     remarks: missionData.remarks || missionData.notes || '',
     missionType: 'LOGISTICS',
     metadata: {
+      projectId: project.id,
+      orderRef: origOrderRef || project.id,
       destination_type: missionData.destination_type || 'Client Site',
       notes: missionData.notes || '',
-      project_name: (typeof project.metadata === 'string' ? JSON.parse(project.metadata) : (project.metadata || {})).name || project.orderNumber
+      project_name: metaObj.name || project.orderNumber
     }
   };
 
   const newMission = await missionRepo.createMission(missionPayload, project.tenantId);
+
+  // Sync underlying order and project status to logistics
+  try {
+    const idsToUpdate = [project.id, origOrderRef].filter(Boolean);
+    for (const idToUp of idsToUpdate) {
+      await prisma.order.update({
+        where: { id: Number(idToUp) },
+        data: { status: 'logistics' }
+      });
+    }
+  } catch (_) {}
 
   await logAudit({
     module: 'MISSIONS',

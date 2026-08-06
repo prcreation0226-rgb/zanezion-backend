@@ -144,6 +144,10 @@ export const createOrder = async (data, performerId, tenantId) => {
     }
   }
 
+  const existingMeta = typeof orderData.metadata === 'string'
+    ? (JSON.parse(orderData.metadata) || {})
+    : (orderData.metadata || {});
+
   const passedTotal = Number(
     data.totalAmount ||
     data.total_amount ||
@@ -166,10 +170,6 @@ export const createOrder = async (data, performerId, tenantId) => {
   } else {
     orderData.totalAmount = passedTotal;
   }
-
-  const existingMeta = typeof orderData.metadata === 'string'
-    ? (JSON.parse(orderData.metadata) || {})
-    : (orderData.metadata || {});
 
   const metaCustomItems = Array.isArray(existingMeta.customItems) ? existingMeta.customItems : [];
   const itemsToSave = customItems.length > 0 ? customItems : (items || []);
@@ -380,7 +380,10 @@ export const convertOrderToProject = async (orderId, projectData, tenantId, perf
     startDate: projectData.startDate || projectData.start || new Date().toISOString().split('T')[0],
     location: projectData.location || order.location || '',
     delivery_type: projectData.delivery_type || projectData.deliveryType || 'Road',
-    client_name: clientName
+    client_name: clientName,
+    orderRef: order.id,
+    order_ref: order.id,
+    order_id: order.id
   };
 
   const project = await prisma.order.create({
@@ -395,6 +398,14 @@ export const convertOrderToProject = async (orderId, projectData, tenantId, perf
       metadata
     }
   });
+
+  // Update original order's status to logistics
+  try {
+    await prisma.order.update({
+      where: { id: order.id },
+      data: { status: 'logistics' }
+    });
+  } catch (_) {}
 
   await logAudit({
     module: 'ORDERS',
