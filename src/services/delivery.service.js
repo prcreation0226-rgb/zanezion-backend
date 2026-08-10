@@ -389,22 +389,87 @@ export const updateDelivery = async (id, data, tenantId, performerId, clientId =
 
   // Build the update payload (same logic as deliveryRepo.updateDelivery)
   const parsedData = { ...data };
-  if (parsedData.etaSchedule) parsedData.etaSchedule = new Date(parsedData.etaSchedule);
-  if (parsedData.requestDate) parsedData.requestDate = new Date(parsedData.requestDate);
-  if (parsedData.dueDate) parsedData.dueDate = new Date(parsedData.dueDate);
+  if (parsedData.etaSchedule && !isNaN(new Date(parsedData.etaSchedule).getTime())) {
+    parsedData.etaSchedule = new Date(parsedData.etaSchedule);
+  } else {
+    delete parsedData.etaSchedule;
+  }
+  if (parsedData.requestDate && !isNaN(new Date(parsedData.requestDate).getTime())) {
+    parsedData.requestDate = new Date(parsedData.requestDate);
+  } else {
+    delete parsedData.requestDate;
+  }
+  if (parsedData.dueDate && !isNaN(new Date(parsedData.dueDate).getTime())) {
+    parsedData.dueDate = new Date(parsedData.dueDate);
+  } else {
+    delete parsedData.dueDate;
+  }
 
   const signature = parsedData.signature;
   delete parsedData.signature;
-
   delete parsedData.items;
   delete parsedData.deliveryNumber;
   delete parsedData.tenantId;
 
-  if (parsedData.assigned_driver) {
-    const emp = await prisma.employee.findFirst({ where: { userId: Number(parsedData.assigned_driver) } });
-    if (emp) parsedData.assignedTo = emp.id;
+  if (parsedData.assigned_driver !== undefined || parsedData.driverId !== undefined || parsedData.assignedTo !== undefined) {
+    const targetUserId = Number(parsedData.assigned_driver || parsedData.driverId || parsedData.assignedTo);
+    if (parsedData.assignedTo === null || parsedData.assigned_driver === null || parsedData.driverId === null) {
+      parsedData.assignedTo = null;
+    } else if (!isNaN(targetUserId) && targetUserId > 0) {
+      let emp = await prisma.employee.findFirst({ where: { userId: targetUserId } });
+      if (!emp) {
+        emp = await prisma.employee.findUnique({ where: { id: targetUserId } });
+      }
+      if (!emp) {
+        emp = await prisma.employee.findFirst({ where: { tenantId } });
+      }
+      if (emp) {
+        parsedData.assignedTo = emp.id;
+      }
+    }
     delete parsedData.assigned_driver;
+    delete parsedData.driverId;
   }
+
+  if (parsedData.route_distance !== undefined) {
+    const val = parseFloat(parsedData.route_distance);
+    parsedData.routeDistance = !isNaN(val) ? val : null;
+    delete parsedData.route_distance;
+  }
+  if (parsedData.staff_pay_rate !== undefined) {
+    const val = parseFloat(parsedData.staff_pay_rate);
+    parsedData.staffPayRate = !isNaN(val) ? val : null;
+    delete parsedData.staff_pay_rate;
+  }
+  if (parsedData.delivery_fee !== undefined) {
+    const val = parseFloat(parsedData.delivery_fee);
+    parsedData.deliveryFee = !isNaN(val) ? val : null;
+    delete parsedData.delivery_fee;
+  }
+  if (parsedData.vehicleRef !== undefined || parsedData.plate_number !== undefined || parsedData.vehicle_id !== undefined) {
+    parsedData.vehicleRef = String(parsedData.vehicleRef || parsedData.plate_number || parsedData.vehicle_id || '');
+    delete parsedData.plate_number;
+    delete parsedData.vehicle_id;
+  }
+  if (parsedData.mode !== undefined || parsedData.transportMode !== undefined) {
+    parsedData.transportMode = String(parsedData.mode || parsedData.transportMode || 'Road');
+    delete parsedData.mode;
+  }
+
+  // Remove any remaining unknown keys not in schema
+  const allowedKeys = [
+    'orderId', 'clientId', 'assignedTo', 'warehouseId', 'status',
+    'dispatchDate', 'deliveryDate', 'remarks', 'missionType',
+    'transportMode', 'vehicleRef', 'etaSchedule', 'requestDate',
+    'dueDate', 'pickupLocation', 'dropLocation', 'routeDistance',
+    'staffPayRate', 'deliveryFee'
+  ];
+
+  Object.keys(parsedData).forEach(key => {
+    if (!allowedKeys.includes(key)) {
+      delete parsedData[key];
+    }
+  });
 
   if (signature) {
     const existingPOD = await prisma.proofOfDelivery.findFirst({

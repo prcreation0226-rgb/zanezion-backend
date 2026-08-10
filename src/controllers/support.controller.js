@@ -10,7 +10,7 @@ const handleRequest = async (req, res, next, serviceFn, successMsg, eventName) =
     
     if (req.method === 'GET') {
       tenantId = resolveTenantId(req);
-      const result = await serviceFn(tenantId);
+      const result = await serviceFn(tenantId, req.user);
       sendResponse(res, 200, successMsg, result);
     } else if (req.method === 'POST') {
       tenantId = isSuperAdmin ? (req.body.tenantId || req.user.tenantId || 1) : (req.user.tenantId || 1);

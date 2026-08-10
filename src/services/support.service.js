@@ -36,8 +36,12 @@ export const createTicket = async (data, performerId, tenantId) => {
   return { ...ticket, id: ticket.ticketId };
 };
 
-export const getTickets = async (tenantId) => {
-  const tickets = await supportRepository.findAllTickets(tenantId);
+export const getTickets = async (tenantId, user) => {
+  const roleName = typeof user?.role === 'object' ? (user?.role?.name || '') : String(user?.role || '');
+  const normalizedRole = roleName.toLowerCase().replace(/\s+/g, '_');
+  const isInternal = ['super_admin', 'superadmin', 'admin', 'concierge', 'operations', 'logistics'].includes(normalizedRole);
+  const effectiveTenantId = isInternal ? null : tenantId;
+  const tickets = await supportRepository.findAllTickets(effectiveTenantId);
   return tickets.map(t => ({ ...t, id: t.ticketId }));
 };
 
@@ -103,8 +107,12 @@ export const createEvent = async (data, performerId, tenantId) => {
   return { ...event, id: event.eventId };
 };
 
-export const getEvents = async (tenantId) => {
-  const events = await supportRepository.findAllEvents(tenantId);
+export const getEvents = async (tenantId, user) => {
+  const roleName = typeof user?.role === 'object' ? (user?.role?.name || '') : String(user?.role || '');
+  const normalizedRole = roleName.toLowerCase().replace(/\s+/g, '_');
+  const isInternal = ['super_admin', 'superadmin', 'admin', 'concierge', 'operations', 'logistics'].includes(normalizedRole);
+  const effectiveTenantId = isInternal ? null : tenantId;
+  const events = await supportRepository.findAllEvents(effectiveTenantId);
   return events.map(e => ({ ...e, id: e.eventId }));
 };
 
@@ -165,8 +173,12 @@ export const createGuestRequest = async (data, performerId, tenantId) => {
   return { ...req, id: req.requestId };
 };
 
-export const getGuestRequests = async (tenantId) => {
-  const reqs = await supportRepository.findAllGuestRequests(tenantId);
+export const getGuestRequests = async (tenantId, user) => {
+  const roleName = typeof user?.role === 'object' ? (user?.role?.name || '') : String(user?.role || '');
+  const normalizedRole = roleName.toLowerCase().replace(/\s+/g, '_');
+  const isInternal = ['super_admin', 'superadmin', 'admin', 'concierge', 'operations', 'logistics'].includes(normalizedRole);
+  const effectiveTenantId = isInternal ? null : tenantId;
+  const reqs = await supportRepository.findAllGuestRequests(effectiveTenantId);
   return reqs.map(r => ({ ...r, id: r.requestId }));
 };
 
