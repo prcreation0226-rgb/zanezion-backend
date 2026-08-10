@@ -1,17 +1,18 @@
 import { z } from 'zod';
 
 const deliveryItemSchema = z.object({
-  orderItemId: z.number().int().positive('Order Item ID is required').optional().nullable(),
-  itemId: z.number().int().positive('Item ID is required').optional().nullable(),
-  quantity: z.number().positive('Quantity must be positive')
-});
+  orderItemId: z.union([z.number(), z.string(), z.null()]).optional().nullable(),
+  itemId: z.union([z.number(), z.string(), z.null()]).optional().nullable(),
+  name: z.string().optional().nullable(),
+  quantity: z.union([z.number(), z.string()]).optional().nullable()
+}).passthrough();
 
 export const createDeliverySchema = z.object({
-  orderId: z.union([z.number().int().positive(), z.string()]).optional().nullable(),
-  warehouseId: z.number().int().positive('Warehouse ID is required').optional().nullable(),
-  clientId: z.number().int().positive('Client ID is required').optional().nullable(),
-  remarks: z.string().optional(),
-  items: z.array(deliveryItemSchema).optional(),
+  orderId: z.union([z.number(), z.string(), z.null()]).optional().nullable(),
+  warehouseId: z.union([z.number(), z.string(), z.null()]).optional().nullable(),
+  clientId: z.union([z.number(), z.string(), z.null()]).optional().nullable(),
+  remarks: z.string().optional().nullable(),
+  items: z.array(z.any()).optional().nullable(),
   missionType: z.string().optional().nullable(),
   transportMode: z.string().optional().nullable(),
   vehicleRef: z.string().optional().nullable(),
@@ -20,9 +21,9 @@ export const createDeliverySchema = z.object({
   dueDate: z.string().optional().nullable(),
   pickupLocation: z.string().optional().nullable(),
   dropLocation: z.string().optional().nullable(),
-  routeDistance: z.number().optional().nullable(),
-  staffPayRate: z.number().optional().nullable(),
-  deliveryFee: z.number().optional().nullable(),
+  routeDistance: z.union([z.number(), z.string()]).optional().nullable(),
+  staffPayRate: z.union([z.number(), z.string()]).optional().nullable(),
+  deliveryFee: z.union([z.number(), z.string()]).optional().nullable(),
   driver: z.string().optional().nullable(),
   assigned_driver: z.union([z.number(), z.string()]).optional().nullable(),
-});
+}).passthrough();

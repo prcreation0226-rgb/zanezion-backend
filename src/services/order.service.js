@@ -86,7 +86,7 @@ export const createOrder = async (data, performerId, tenantId) => {
           data: {
             tenantId: tenantId || 1,
             clientCode,
-            companyName: user.name || data.client || 'Personal Client',
+            companyName: user.name ? (user.name.includes('(Personal Client)') ? user.name : `${user.name} (Personal Client)`) : (data.client || 'Personal Client'),
             contactPerson: user.name || 'Personal Client',
             email: user.email,
             phone: user.phone || 'N/A',

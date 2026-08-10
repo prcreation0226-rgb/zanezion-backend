@@ -8,33 +8,45 @@ const generateDeliveryNumber = async (tenantId) => {
   return `DEL-${new Date().getFullYear()}-${String(nextNum).padStart(4, '0')}`;
 };
 
-export const createDelivery = async (data, items, tenantId) => {
-  return await prisma.$transaction(async (tx) => {
-    const deliveryNumber = await generateDeliveryNumber(tenantId);
+export const createDelivery = async (data, items, tenantId, tx = null) => {
+  const clientToUse = tx || prisma;
+  const resolvedTenantId = (tenantId != null && !isNaN(Number(tenantId))) ? Number(tenantId) : (data.tenantId != null ? Number(data.tenantId) : 1);
+  const deliveryNumber = await generateDeliveryNumber(resolvedTenantId);
 
-    // Parse Date fields if they exist
-    const parsedData = { ...data };
-    if (parsedData.etaSchedule) parsedData.etaSchedule = new Date(parsedData.etaSchedule);
-    if (parsedData.requestDate) parsedData.requestDate = new Date(parsedData.requestDate);
-    if (parsedData.dueDate) parsedData.dueDate = new Date(parsedData.dueDate);
+  // Parse Date fields safely if valid
+  const parsedData = { ...data };
+  if (parsedData.etaSchedule && !isNaN(new Date(parsedData.etaSchedule).getTime())) {
+    parsedData.etaSchedule = new Date(parsedData.etaSchedule);
+  } else {
+    delete parsedData.etaSchedule;
+  }
+  if (parsedData.requestDate && !isNaN(new Date(parsedData.requestDate).getTime())) {
+    parsedData.requestDate = new Date(parsedData.requestDate);
+  } else {
+    delete parsedData.requestDate;
+  }
+  if (parsedData.dueDate && !isNaN(new Date(parsedData.dueDate).getTime())) {
+    parsedData.dueDate = new Date(parsedData.dueDate);
+  } else {
+    delete parsedData.dueDate;
+  }
 
-    // Filter out undefined items
-    const validItems = Array.isArray(items) ? items : [];
+  // Filter out undefined items
+  const validItems = Array.isArray(items) ? items : [];
 
-    return await tx.delivery.create({
-      data: {
-        ...parsedData,
-        deliveryNumber,
-        tenantId,
-        items: validItems.length > 0 ? {
-          create: validItems.map(item => ({
-            ...item,
-            tenantId
-          }))
-        } : undefined
-      },
-      include: { items: true, client: true, order: true }
-    });
+  return await clientToUse.delivery.create({
+    data: {
+      ...parsedData,
+      deliveryNumber,
+      tenantId: resolvedTenantId,
+      items: validItems.length > 0 ? {
+        create: validItems.map(item => ({
+          ...item,
+          tenantId: resolvedTenantId
+        }))
+      } : undefined
+    },
+    include: { items: true, client: true, order: true }
   });
 };
 

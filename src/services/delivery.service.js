@@ -87,8 +87,20 @@ export const createDelivery = async (data, performerId, tenantId) => {
     }
 
     if (!clientIdToUse) {
-      const defaultClient = await prisma.client.findFirst({ where: { ...(tenantId != null && { tenantId }) } });
-      if (!defaultClient) throw new AppError('No clients available to assign to ad-hoc mission', 400);
+      let defaultClient = await prisma.client.findFirst({ where: { ...(tenantId != null && { tenantId }) } });
+      if (!defaultClient) {
+        defaultClient = await prisma.client.findFirst({});
+      }
+      if (!defaultClient) {
+        defaultClient = await prisma.client.create({
+          data: {
+            companyName: 'General Client',
+            contactPerson: 'Default Client',
+            email: 'client@zanezion.com',
+            tenantId: tenantId || 1
+          }
+        });
+      }
       clientIdToUse = defaultClient.id;
     }
 
@@ -136,9 +148,10 @@ export const createDelivery = async (data, performerId, tenantId) => {
     // Build valid order items without creating garbage records in the Item inventory table
     const validItems = await Promise.all(itemsToProcess.map(async (it, index) => {
       let itemExists = null;
-      if (it.itemId) {
+      const numItemId = Number(it.itemId);
+      if (it.itemId && !isNaN(numItemId) && numItemId > 0) {
         itemExists = await prisma.item.findFirst({
-          where: { id: Number(it.itemId), ...(tenantId != null && { tenantId }) }
+          where: { id: numItemId, ...(tenantId != null && { tenantId }) }
         });
       }
 
@@ -185,7 +198,8 @@ export const createDelivery = async (data, performerId, tenantId) => {
     delete deliveryData.assigned_driver;
   }
 
-  if (!['draft', 'pending', 'approved', 'ready_for_delivery', 'planned', 'active', 'in_progress', 'Pending', 'In Progress', 'operation', 'procurement', 'inventory', 'logistics', 'concierge', 'created', 'admin_review', 'pending_review'].includes(order.status)) {
+  const blockedStatuses = ['completed', 'Completed', 'cancelled', 'Cancelled', 'rejected', 'Rejected'];
+  if (blockedStatuses.includes(order.status)) {
     throw new AppError(`Cannot create delivery for order in ${order.status} status`, 400);
   }
 
@@ -270,7 +284,11 @@ export const createDelivery = async (data, performerId, tenantId) => {
     const remainingToDeliver = orderItem.quantity - alreadyDelivered;
 
     if (item.quantity > remainingToDeliver) {
-      throw new AppError(`Cannot deliver ${item.quantity} for item ${item.itemId}. Only ${remainingToDeliver} remaining.`, 400);
+      if (remainingToDeliver > 0) {
+        item.quantity = remainingToDeliver;
+      } else {
+        continue;
+      }
     }
     
     validDeliveryItems.push(item);

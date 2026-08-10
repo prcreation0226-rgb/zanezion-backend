@@ -8,80 +8,85 @@ const generateOrderNumber = async (tenantId) => {
   return `ORD-${new Date().getFullYear()}-${String(nextNum).padStart(4, '0')}`;
 };
 
-export const createOrder = async (data, items, tenantId) => {
-  return await prisma.$transaction(async (tx) => {
-    const orderNumber = data.orderNumber || await generateOrderNumber(tenantId);
-    
-    const itemsArray = items || [];
-    let computedTotalAmount = itemsArray.reduce((sum, item) => sum + (item.quantity * item.unitPrice), 0);
-    
-    // If no explicit DB items but we have a total amount in data, use it
-    if (computedTotalAmount === 0 && (data.totalAmount !== undefined || data.total_amount !== undefined)) {
-        computedTotalAmount = Number(data.totalAmount || data.total_amount || 0);
+export const createOrder = async (data, items, tenantId, tx = null) => {
+  const clientToUse = tx || prisma;
+  const resolvedTenantId = (tenantId != null && !isNaN(Number(tenantId))) ? Number(tenantId) : (data.tenantId != null ? Number(data.tenantId) : 1);
+  const orderNumber = data.orderNumber || await generateOrderNumber(resolvedTenantId);
+  
+  const itemsArray = items || [];
+  let computedTotalAmount = itemsArray.reduce((sum, item) => sum + (item.quantity * item.unitPrice), 0);
+  
+  // If no explicit DB items but we have a total amount in data, use it
+  if (computedTotalAmount === 0 && (data.totalAmount !== undefined || data.total_amount !== undefined)) {
+      computedTotalAmount = Number(data.totalAmount || data.total_amount || 0);
+  }
+
+  const validDbKeys = [
+    'id',
+    'tenantId',
+    'orderNumber',
+    'clientId',
+    'createdById',
+    'status',
+    'priority',
+    'orderType',
+    'metadata',
+    'totalAmount',
+    'createdAt',
+    'updatedAt'
+  ];
+
+  const dbData = {};
+  const metadataExt = {};
+
+  Object.keys(data).forEach(key => {
+    if (validDbKeys.includes(key)) {
+      dbData[key] = data[key];
+    } else {
+      metadataExt[key] = data[key];
     }
-
-    const validDbKeys = [
-      'id',
-      'tenantId',
-      'orderNumber',
-      'clientId',
-      'createdById',
-      'status',
-      'priority',
-      'orderType',
-      'metadata',
-      'totalAmount',
-      'createdAt',
-      'updatedAt'
-    ];
-
-    const dbData = {};
-    const metadataExt = {};
-
-    Object.keys(data).forEach(key => {
-      if (validDbKeys.includes(key)) {
-        dbData[key] = data[key];
-      } else {
-        metadataExt[key] = data[key];
-      }
-    });
-
-    const existingMetadata = typeof data.metadata === 'string'
-      ? JSON.parse(data.metadata)
-      : (data.metadata || {});
-
-    const finalMetadata = {
-      ...existingMetadata,
-      ...metadataExt
-    };
-
-    const newOrder = await tx.order.create({
-      data: {
-        ...dbData,
-        orderNumber,
-        tenantId,
-        totalAmount: computedTotalAmount,
-        metadata: finalMetadata,
-        ...(itemsArray.length > 0 && {
-          items: {
-            create: itemsArray.map(item => ({
-              ...item,
-              tenantId,
-              totalPrice: item.quantity * item.unitPrice
-            }))
-          }
-        })
-      },
-      include: { items: true, client: true }
-    });
-
-    const { metadata, ...rest } = newOrder;
-    return {
-      ...rest,
-      metadata: finalMetadata,
-      ...finalMetadata
-    };
   });
+
+  const existingMetadata = typeof data.metadata === 'string'
+    ? JSON.parse(data.metadata)
+    : (data.metadata || {});
+
+  const finalMetadata = {
+    ...existingMetadata,
+    ...metadataExt
+  };
+
+  const dbOrderItems = itemsArray.filter(item => item && item.itemId && !isNaN(Number(item.itemId)) && Number(item.itemId) > 0).map(item => ({
+    itemId: Number(item.itemId),
+    warehouseId: Number(item.warehouseId || 1),
+    quantity: Number(item.quantity || 1),
+    unitPrice: Number(item.unitPrice || 0),
+    totalPrice: Number(item.totalPrice != null ? item.totalPrice : ((item.quantity || 1) * (item.unitPrice || 0))),
+    tenantId: resolvedTenantId
+  }));
+
+  const newOrder = await clientToUse.order.create({
+    data: {
+      ...dbData,
+      orderNumber,
+      tenantId: resolvedTenantId,
+      totalAmount: computedTotalAmount,
+      metadata: finalMetadata,
+      ...(dbOrderItems.length > 0 && {
+        items: {
+          create: dbOrderItems
+        }
+      })
+    },
+    include: { items: true, client: true }
+  });
+
+  const { metadata, ...rest } = newOrder;
+  return {
+    ...rest,
+    metadata: finalMetadata,
+    ...finalMetadata
+  };
 };
 
 export const findOrderById = async (id) => {

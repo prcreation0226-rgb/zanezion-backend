@@ -748,7 +748,7 @@ const handleRequest = async (method, url, data) => {
 
   // -- CONCIERGE CHAUFFEUR DISPATCH --
   if (path.startsWith('/chauffeur') && method === 'POST') {
-    const chauffeurs = getDB('events'); // mapping custom chauffeur events
+    const chauffeurs = getDB('chauffeur_events'); // mapping custom chauffeur events
     const newBooking = {
       id: Date.now(),
       name: `Chauffeur Protocol - ${data.pickupLocation || 'Pickup'}`,
@@ -761,7 +761,7 @@ const handleRequest = async (method, url, data) => {
       ...data
     };
     chauffeurs.push(newBooking);
-    setDB('events', chauffeurs);
+    setDB('chauffeur_events', chauffeurs);
 
     const logs = getDB('logs');
     logs.unshift({
