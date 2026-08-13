@@ -145,13 +145,13 @@ export const checkPermission = (routeIdentifier, action) => {
         return next();
       }
 
-      const isCustomer = ['business_client', 'business client', 'individual_client', 'individual client', 'unknown', 'guest', 'client', 'saas_client', 'saas client', 'customer'].includes(roleNameLower);
-      if (isCustomer && action === 'READ' && ['ORDERS', 'CLIENTS', 'USERS', 'VENDORS', 'DELIVERIES', 'WAREHOUSES', 'INVOICES', 'PURCHASE_REQUESTS', 'QUOTATIONS', 'RFQS', 'PURCHASE_ORDERS', 'ITEMS', 'STOCK', 'PLANS', 'TRACKING', 'MISSIONS', 'ROUTES', 'URGENT', 'SUPPORT', 'CONCIERGE', 'ROLES', 'PROJECTS', 'DEPARTMENTS', 'DESIGNATIONS'].includes(routeIdentifier)) {
-        console.log(`[RBAC] Role: ${roleName} | Route: ${routeIdentifier} | Action: READ | Result: ALLOWED (Customer Bypass)`);
+      const isCustomerOrStaff = ['business_client', 'business client', 'individual_client', 'individual client', 'unknown', 'guest', 'client', 'saas_client', 'saas client', 'customer', 'concierge', 'staff', 'operations', 'logistics', 'procurement', 'inventory', 'admin', 'super_admin', 'superadmin'].includes(roleNameLower) || roleNameLower.includes('concierge') || roleNameLower.includes('staff') || roleNameLower.includes('admin');
+      if (isCustomerOrStaff && action === 'READ' && ['ORDERS', 'CLIENTS', 'USERS', 'VENDORS', 'DELIVERIES', 'WAREHOUSES', 'INVOICES', 'PURCHASE_REQUESTS', 'QUOTATIONS', 'RFQS', 'PURCHASE_ORDERS', 'ITEMS', 'STOCK', 'PLANS', 'TRACKING', 'MISSIONS', 'ROUTES', 'URGENT', 'SUPPORT', 'CONCIERGE', 'ROLES', 'PROJECTS', 'DEPARTMENTS', 'DESIGNATIONS'].includes(routeIdentifier)) {
+        console.log(`[RBAC] Role: ${roleName} | Route: ${routeIdentifier} | Action: READ | Result: ALLOWED (Staff/Customer Bypass)`);
         return next();
       }
 
-      if (isCustomer && ['CREATE', 'UPDATE', 'DELETE', 'ADJUST', 'TRANSFER', 'APPROVE', 'MANAGE'].includes(action) && ['ORDERS', 'SUPPORT', 'CONCIERGE', 'DELIVERIES', 'STOCK', 'WAREHOUSES', 'PURCHASE_ORDERS', 'PURCHASE_REQUESTS', 'USERS', 'CLIENTS', 'PROJECTS', 'INVOICES', 'PAYMENTS', 'RFQS', 'QUOTATIONS'].includes(routeIdentifier)) {
+      if (isCustomerOrStaff && ['CREATE', 'UPDATE', 'DELETE', 'ADJUST', 'TRANSFER', 'APPROVE', 'MANAGE'].includes(action) && ['ORDERS', 'SUPPORT', 'CONCIERGE', 'DELIVERIES', 'STOCK', 'WAREHOUSES', 'PURCHASE_ORDERS', 'PURCHASE_REQUESTS', 'USERS', 'CLIENTS', 'PROJECTS', 'INVOICES', 'PAYMENTS', 'RFQS', 'QUOTATIONS'].includes(routeIdentifier)) {
         console.log(`[RBAC] Role: ${roleName} | Route: ${routeIdentifier} | Action: ${action} | Result: ALLOWED (Customer Action Bypass)`);
         return next();
       }

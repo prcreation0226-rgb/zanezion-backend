@@ -445,6 +445,21 @@ export const assignMission = async (id, assignData, tenantId, performerId) => {
     }
   }
 
+  // Look up vehicle plate from fleet
+  let plateNumber = assignData.vehicleId || null;
+  if (assignData.vehicleId) {
+    try {
+      const fleet = await prisma.fleet.findFirst({
+        where: { id: Number(assignData.vehicleId) }
+      });
+      if (fleet) plateNumber = fleet.plateNumber || fleet.plate_number || fleet.vehicleNumber || String(assignData.vehicleId);
+    } catch (_) {}
+  }
+
+  const driverName = employee
+    ? `${employee.firstName || ''} ${employee.lastName || ''}`.trim()
+    : null;
+
   // Update mission
   const updatedMission = await prisma.mission.update({
     where: { id: mission.id },
@@ -453,10 +468,40 @@ export const assignMission = async (id, assignData, tenantId, performerId) => {
       assignedEmployeeId: employee ? employee.id : mission.assignedEmployeeId,
       metadata: {
         ...(typeof mission.metadata === 'object' ? mission.metadata : {}),
-        vehicleId: assignData.vehicleId || null
+        vehicleId: assignData.vehicleId || null,
+        plateNumber,
+        driverName,
+        driverId: assignData.driverId || null
       }
     }
   });
+
+  // Propagate assignment to linked order if it has orderId stored in metadata
+  try {
+    const missionMeta = typeof mission.metadata === 'object' ? (mission.metadata || {}) : {};
+    const linkedOrderId = missionMeta.orderId || mission.orderId || null;
+    if (linkedOrderId && !isNaN(Number(linkedOrderId))) {
+      const existingOrder = await prisma.order.findUnique({ where: { id: Number(linkedOrderId) } });
+      if (existingOrder) {
+        const existingMeta = typeof existingOrder.metadata === 'string'
+          ? JSON.parse(existingOrder.metadata)
+          : (existingOrder.metadata || {});
+        await prisma.order.update({
+          where: { id: Number(linkedOrderId) },
+          data: {
+            metadata: {
+              ...existingMeta,
+              driverName,
+              plateNumber,
+              driverId: assignData.driverId || null,
+              vehicleId: assignData.vehicleId || null,
+              adminApproved: true
+            }
+          }
+        });
+      }
+    }
+  } catch (_) {}
 
   await logAudit({
     module: 'MISSIONS',

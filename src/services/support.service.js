@@ -46,19 +46,26 @@ export const getTickets = async (tenantId, user) => {
 };
 
 export const updateTicket = async (id, data, tenantId, performerId) => {
-  const existing = await supportRepository.findTicketById(id, tenantId);
+  // Allow admin updates across all tenants (tenantId null)
+  const existing = await supportRepository.findTicketById(id, null);
   if (!existing) throw new AppError('Ticket not found', 404);
 
+  const rawMessages = data.messages !== undefined ? data.messages : (data.responses !== undefined ? data.responses : existing.messages);
+  let parsedMessages = rawMessages;
+  if (typeof rawMessages === 'string') {
+    try { parsedMessages = JSON.parse(rawMessages); } catch (_) { parsedMessages = []; }
+  }
+
   const payload = {
-    title: data.title !== undefined ? data.title : existing.title,
+    title: data.title !== undefined ? data.title : (data.subject !== undefined ? data.subject : existing.title),
     description: data.description !== undefined ? data.description : existing.description,
     priority: data.priority !== undefined ? data.priority : existing.priority,
     status: data.status !== undefined ? data.status : existing.status,
     category: data.category !== undefined ? data.category : existing.category,
-    messages: data.messages !== undefined ? JSON.parse(JSON.stringify(data.messages)) : existing.messages
+    messages: parsedMessages
   };
 
-  const updated = await supportRepository.updateTicket(id, tenantId, payload);
+  const updated = await supportRepository.updateTicket(id, null, payload);
   await logAudit({ module: 'SUPPORT', action: 'UPDATE', description: `Updated ticket ${id}`, oldValue: existing, newValue: updated, performedBy: performerId });
   return { ...updated, id: updated.ticketId };
 };

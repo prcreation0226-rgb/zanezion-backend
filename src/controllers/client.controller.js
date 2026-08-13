@@ -81,13 +81,13 @@ export const getClients = async (req, res, next) => {
   try {
     const rawRole = typeof req.user.role === 'string' ? req.user.role : (req.user.role?.name || req.user.roleName || '');
     const roleName = String(rawRole).toUpperCase();
-    const isSuperAdminOrAdmin = ['SUPER_ADMIN', 'ADMIN'].includes(roleName);
+    const isStaffOrAdmin = ['SUPER_ADMIN', 'ADMIN', 'CONCIERGE', 'OPERATIONS', 'PROCUREMENT', 'LOGISTICS', 'STAFF'].includes(roleName) || roleName.includes('CONCIERGE') || roleName.includes('ADMIN') || roleName.includes('STAFF');
     const clientTypeLower = String(req.query.clientType || '').toLowerCase();
     const isPersonalQuery = clientTypeLower === 'personal' || clientTypeLower === 'individual';
 
-    // Super Admin & Admin or Personal client query -> view all clients across all tenants
+    // Super Admin, Admin, Concierge, Operations, Staff or Personal client query -> view all clients across all tenants
     let tenantIdToFilter = null;
-    if (!isSuperAdminOrAdmin && !isPersonalQuery) {
+    if (!isStaffOrAdmin && !isPersonalQuery) {
       tenantIdToFilter = req.user.tenantId || 1;
     } else if (req.query?.tenantId) {
       tenantIdToFilter = Number(req.query.tenantId);

@@ -34,8 +34,9 @@ export const findUserById = async (id) => {
 };
 
 export const findAllUsersByTenant = async (tenantId, query) => {
-  const { page = 1, limit = 10, search = '', roleId, roleName, status } = query;
-  const skip = (page - 1) * limit;
+  const { page = 1, limit, search = '', roleId, roleName, status } = query;
+  const limitVal = (limit != null && !isNaN(Number(limit))) ? Number(limit) : 1000;
+  const skip = (page - 1) * limitVal;
 
   const where = {
     ...(tenantId !== null && { tenantId }),
@@ -55,7 +56,7 @@ export const findAllUsersByTenant = async (tenantId, query) => {
     prisma.user.findMany({
       where,
       skip: Number(skip),
-      take: Number(limit),
+      take: Number(limitVal),
       select: {
         id: true,
         uuid: true,

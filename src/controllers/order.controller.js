@@ -94,7 +94,7 @@ export const getOrders = async (req, res, next) => {
 
     const rawOrderType = String(req.query.orderType || '').toUpperCase();
     const isOperationalQuery = ['CHAUFFEUR', 'DELIVERY', 'SERVICE', 'LOGISTICS', 'MISSION'].includes(rawOrderType);
-    const tenantIdToFilter = (isOperationalQuery || isStaffOrAdmin) ? resolveTenantIdForOperations(req) : resolveTenantId(req);
+    const tenantIdToFilter = (isOperationalQuery || isStaffOrAdmin) ? null : resolveTenantId(req);
 
     if (['INDIVIDUAL_CLIENT', 'CUSTOMER'].includes(roleName)) {
       let resolvedClientId = req.user.clientId;

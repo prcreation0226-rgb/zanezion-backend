@@ -20,8 +20,9 @@ export const findClientByCode = async (clientCode, tenantId) => {
 };
 
 export const findAllClients = async (tenantId, query) => {
-  const { page = 1, limit = 10, search = '', status, clientType } = query;
-  const skip = (page - 1) * limit;
+  const { page = 1, limit, search = '', status, clientType } = query;
+  const limitVal = (limit != null && !isNaN(Number(limit))) ? Number(limit) : 1000;
+  const skip = (page - 1) * limitVal;
 
   const where = {
     ...(tenantId !== null && { tenantId }),
@@ -42,13 +43,13 @@ export const findAllClients = async (tenantId, query) => {
     prisma.client.findMany({
       where,
       skip: Number(skip),
-      take: Number(limit),
+      take: Number(limitVal),
       orderBy: { createdAt: 'desc' }
     }),
     prisma.client.count({ where })
   ]);
 
-  return { clients, total, page: Number(page), totalPages: Math.ceil(total / limit) };
+  return { clients, total, page: Number(page), totalPages: Math.ceil(total / limitVal) };
 };
 
 export const updateClient = async (id, data) => {

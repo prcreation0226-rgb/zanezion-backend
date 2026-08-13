@@ -2,6 +2,8 @@ import * as userService from '../services/user.service.js';
 import { sendResponse } from '../utils/response.js';
 import cloudinary from '../config/cloudinary.js';
 import { resolveTenantId } from '../utils/tenantResolver.js';
+import fs from 'fs';
+import path from 'path';
 
 export const createUser = async (req, res, next) => {
   try {
@@ -61,9 +63,16 @@ export const getUsers = async (req, res, next) => {
 
 export const getCustomers = async (req, res, next) => {
   try {
-    const tenantIdToFilter = resolveTenantId(req);
+    const rawRole = typeof req.user?.role === 'string' ? req.user.role : (req.user?.role?.name || req.user?.roleName || '');
+    const roleName = String(rawRole).toUpperCase();
+    const isStaffOrAdmin = ['SUPER_ADMIN', 'ADMIN', 'CONCIERGE', 'OPERATIONS', 'PROCUREMENT', 'LOGISTICS', 'STAFF'].includes(roleName) || roleName.includes('CONCIERGE') || roleName.includes('ADMIN') || roleName.includes('STAFF');
 
-    const query = { ...req.query };
+    let tenantIdToFilter = resolveTenantId(req);
+    if (isStaffOrAdmin || req.query.include_all || req.query.include_client_role) {
+      tenantIdToFilter = null;
+    }
+
+    const query = { limit: 1000, ...req.query };
     if (!req.query.include_all && !req.query.include_client_role) {
       query.roleName = 'BUSINESS_CLIENT';
     }
@@ -184,23 +193,40 @@ export const uploadDocument = async (req, res, next) => {
       return sendResponse(res, 400, `Invalid file format. Allowed formats for ${type}: ${docConfig.formats.join(', ')}`);
     }
 
-    // Stream upload to Cloudinary
-    const baseFolder = process.env.CLOUDINARY_FOLDER || 'zanezion';
-    const uploadStream = () => {
-      return new Promise((resolve, reject) => {
-        const stream = cloudinary.uploader.upload_stream(
-          { folder: `${baseFolder}/institutional_vault`, resource_type: 'auto' },
-          (error, result) => {
-            if (error) return reject(error);
-            resolve(result);
-          }
-        );
-        stream.end(req.file.buffer);
-      });
-    };
+    let secureUrl = '';
 
-    const uploadResult = await uploadStream();
-    const secureUrl = uploadResult.secure_url;
+    // Attempt Cloudinary stream upload if credentials are valid
+    if (process.env.CLOUDINARY_API_KEY && process.env.CLOUDINARY_API_KEY !== 'dummy' && cloudinary?.uploader) {
+      try {
+        const baseFolder = process.env.CLOUDINARY_FOLDER || 'zanezion';
+        const uploadResult = await new Promise((resolve, reject) => {
+          const stream = cloudinary.uploader.upload_stream(
+            { folder: `${baseFolder}/institutional_vault`, resource_type: 'auto' },
+            (error, result) => {
+              if (error) return reject(error);
+              resolve(result);
+            }
+          );
+          stream.end(req.file.buffer);
+        });
+        secureUrl = uploadResult.secure_url;
+      } catch (cErr) {
+        console.warn('Cloudinary upload warning, falling back to local file storage:', cErr.message);
+      }
+    }
+
+    // Disk storage fallback if Cloudinary not available or failed
+    if (!secureUrl) {
+      const uploadsDir = path.join(process.cwd(), 'uploads');
+      if (!fs.existsSync(uploadsDir)) {
+        fs.mkdirSync(uploadsDir, { recursive: true });
+      }
+      const safeExt = fileExt || 'bin';
+      const filename = `${type}_user_${userId}_${Date.now()}.${safeExt}`;
+      const filePath = path.join(uploadsDir, filename);
+      fs.writeFileSync(filePath, req.file.buffer);
+      secureUrl = `/uploads/${filename}`;
+    }
 
     const tenantIdToFilter = resolveTenantId(req);
 
@@ -210,7 +236,11 @@ export const uploadDocument = async (req, res, next) => {
     };
 
     const updatedUser = await userService.updateUser(userId, payload, tenantIdToFilter, req.ip, req.headers['user-agent']);
-    sendResponse(res, 200, 'Document uploaded successfully', updatedUser);
+    sendResponse(res, 200, 'Document uploaded successfully', {
+      ...updatedUser,
+      url: secureUrl,
+      [docConfig.urlKey]: secureUrl
+    });
   } catch (error) {
     next(error);
   }

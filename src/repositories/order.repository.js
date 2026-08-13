@@ -114,11 +114,20 @@ export const findAllOrders = async (tenantId, query) => {
 
   const isCustomerFilter = !!(user_id || customer_email);
   const where = {
-    ...(tenantId !== null && { tenantId }),
+    ...(tenantId !== null && tenantId !== undefined && { tenantId }),
     ...(search && { orderNumber: { contains: search } }),
     ...(status && { status }),
     ...(!isCustomerFilter && clientId && { clientId: Number(clientId) }),
-    ...(orderType && { orderType })
+    ...(orderType && {
+      OR: [
+        { orderType: orderType },
+        { orderType: String(orderType).toLowerCase() },
+        { orderType: String(orderType).toUpperCase() },
+        { orderType: 'CHAUFFEUR' },
+        { orderType: 'Chauffeur' },
+        { orderType: 'chauffeur' }
+      ]
+    })
   };
 
   // currentDept: orders currently in this department (metadata.currentDepartment)
@@ -133,7 +142,7 @@ export const findAllOrders = async (tenantId, query) => {
     orderBy: { createdAt: 'desc' },
     include: {
       items: { include: { item: true } },
-      client: { select: { companyName: true, clientCode: true, contactPerson: true, email: true } }
+      client: { select: { id: true, companyName: true, clientCode: true, contactPerson: true, email: true, plan: true, clientType: true, status: true } }
     }
   });
 
@@ -151,6 +160,35 @@ export const findAllOrders = async (tenantId, query) => {
       ...metadataObj
     };
   });
+
+  // For Concierge role queries, enforce Concierge Order Visibility Rule:
+  // - Concierge Requests/Orders: ALWAYS visible
+  // - Marketplace Orders: Visible ONLY for clients with upgraded accounts in database
+  const isConciergeViewer = query.viewerRole === 'concierge' || query.role === 'concierge';
+  if (isConciergeViewer) {
+    mappedOrders = mappedOrders.filter(o => {
+      const typeStr = String(o.orderType || o.type || '').toUpperCase();
+      const kindStr = String(o.orderKind || o.kind || '').toLowerCase();
+      const statusStr = String(o.status || '').toLowerCase();
+      const meta = o.metadata || {};
+
+      const isConciergeReq =
+        typeStr.includes('CONCIERGE') || typeStr.includes('CHAUFFEUR') || typeStr.includes('EVENTS') || typeStr.includes('BESPOKE') || typeStr.includes('VIP') ||
+        kindStr.includes('custom') || kindStr.includes('bespoke') || kindStr.includes('concierge') || kindStr.includes('chauffeur') ||
+        statusStr === 'concierge' || meta.custom_request_category || o.isConcierge || o.isCustomRequest;
+
+      if (isConciergeReq) return true;
+
+      // For marketplace orders, check if client account is upgraded in database
+      const client = o.client;
+      if (!client) return false;
+      const planStr = String(client.plan || '').toLowerCase();
+      const typeStrClient = String(client.clientType || '').toLowerCase();
+      const upgradedKeywords = ['upgraded', 'vip', 'saas', 'enterprise', 'corporate', 'pro', 'concierge', 'lifestyle', 'membership', 'premium', 'business'];
+
+      return upgradedKeywords.some(kw => planStr.includes(kw) || typeStrClient.includes(kw));
+    });
+  }
 
   // For customer queries, ensure orders matching customer's user_id, email, or clientId are included
   if (isCustomerFilter) {

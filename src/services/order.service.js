@@ -164,7 +164,20 @@ export const createOrder = async (data, performerId, tenantId) => {
     0
   );
 
-  if (validOrderItems.length > 0) {
+  const isChauffeurOrder = String(orderData.orderType || data.type || '').toUpperCase() === 'CHAUFFEUR';
+  if (isChauffeurOrder) {
+    const sType = data.serviceType || existingMeta.serviceType || 'One Way';
+    const days = parseInt(data.numberOfDays || data.dailyDays || existingMeta.numberOfDays || existingMeta.dailyDays || 1, 10) || 1;
+    const qtyMultiplier = sType === 'Round Trip' ? 2 : (sType === 'Daily Service' ? days : 1);
+    const baseUnitPrice = Number(data.unitPrice || data.price || existingMeta.unitPrice || 120) || 120;
+    const computedChauffeurTotal = baseUnitPrice * qtyMultiplier;
+
+    if (!passedTotal || (sType === 'Daily Service' && days > 1 && passedTotal <= baseUnitPrice * 1.5) || (sType === 'Round Trip' && passedTotal <= baseUnitPrice * 1.5)) {
+      orderData.totalAmount = computedChauffeurTotal;
+    } else {
+      orderData.totalAmount = passedTotal;
+    }
+  } else if (validOrderItems.length > 0) {
     const calcTotal = validOrderItems.reduce((acc, i) => acc + (i.quantity * i.unitPrice), 0);
     orderData.totalAmount = calcTotal > 0 ? calcTotal : passedTotal;
   } else {
@@ -173,8 +186,42 @@ export const createOrder = async (data, performerId, tenantId) => {
 
   const metaCustomItems = Array.isArray(existingMeta.customItems) ? existingMeta.customItems : [];
   const itemsToSave = customItems.length > 0 ? customItems : (items || []);
+
+  // Determine client name fallback for guestName / passengerName if not explicitly provided
+  const resolvedClientName = client ? (client.companyName || client.contactPerson || client.name) : (orderData.clientName || 'Guest Client');
+  const rawPassengerName = data.passengerName || data.passenger_name || data.guestName || data.guest_name || existingMeta.passengerName || existingMeta.guestName;
+  const passengerName = (rawPassengerName && String(rawPassengerName).trim()) ? String(rawPassengerName).trim() : resolvedClientName;
+
+  const numberOfPassengers = Number(data.numberOfPassengers || data.passengers || data.passengerCount || existingMeta.numberOfPassengers || existingMeta.passengers || 1);
+  const rawAmenities = data.amenities || existingMeta.amenities || [];
+  const amenitiesArray = Array.isArray(rawAmenities)
+    ? rawAmenities
+    : (typeof rawAmenities === 'string' && rawAmenities.trim() ? rawAmenities.split(',').map(s => s.trim()) : []);
+
+  const amenitiesLower = amenitiesArray.map(a => String(a).toLowerCase());
+  const wifi = data.wifi || existingMeta.wifi || (amenitiesLower.some(a => a.includes('wifi')) ? 'Yes' : 'No');
+  const refreshments = data.refreshments || existingMeta.refreshments || (amenitiesLower.some(a => a.includes('refreshment')) ? 'Yes' : 'No');
+  const carSeat = data.carSeat || data.car_seat || existingMeta.carSeat || (amenitiesLower.some(a => a.includes('car seat') || a.includes('baby')) ? 'Yes' : 'No');
+  const stops = data.stops || existingMeta.stops || 'No';
+  const stopLocations = data.stopLocations || data.stop_locations || existingMeta.stopLocations || null;
+  const luggage = data.luggage || existingMeta.luggage || 'No';
+  const bags = data.bags !== undefined ? data.bags : (existingMeta.bags || 0);
+
   orderData.metadata = {
     ...existingMeta,
+    numberOfPassengers,
+    passengers: numberOfPassengers,
+    passengerCount: numberOfPassengers,
+    passengerName,
+    guestName: passengerName,
+    luggage,
+    bags,
+    stops,
+    stopLocations,
+    wifi,
+    refreshments,
+    carSeat,
+    amenities: amenitiesArray,
     customItems: metaCustomItems.length > 0 ? metaCustomItems : itemsToSave
   };
 
