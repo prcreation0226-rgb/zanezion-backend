@@ -545,7 +545,7 @@ export const deleteOrder = async (orderId, tenantIdToFilter, clientIdToFilter, p
     });
 
     return true;
-  });
+  }, { maxWait: 15000, timeout: 30000 });
 };
 
 
