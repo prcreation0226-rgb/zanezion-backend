@@ -19,7 +19,7 @@ export const findUserByEmailAndTenant = async (email, tenantId) => {
   return await prisma.user.findFirst({
     where: {
       email: normalizedEmail,
-      ...(tenantId !== null && { tenantId }),
+      ...(tenantId != null && { tenantId: Number(tenantId) }),
       deletedAt: null
     },
     include: { role: true }

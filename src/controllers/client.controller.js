@@ -79,30 +79,40 @@ export const createClient = async (req, res, next) => {
 
 export const getClients = async (req, res, next) => {
   try {
-    const rawRole = typeof req.user.role === 'string' ? req.user.role : (req.user.role?.name || req.user.roleName || '');
+    const rawRole = typeof req.user?.role === 'string' ? req.user.role : (req.user?.role?.name || req.user?.roleName || '');
     const roleName = String(rawRole).toUpperCase();
-    const isStaffOrAdmin = ['SUPER_ADMIN', 'ADMIN', 'CONCIERGE', 'OPERATIONS', 'PROCUREMENT', 'LOGISTICS', 'STAFF'].includes(roleName) || roleName.includes('CONCIERGE') || roleName.includes('ADMIN') || roleName.includes('STAFF');
-    const clientTypeLower = String(req.query.clientType || '').toLowerCase();
-    const isPersonalQuery = clientTypeLower === 'personal' || clientTypeLower === 'individual';
+    const userTenant = req.user?.tenantId ? Number(req.user.tenantId) : 1;
+    const isHQSuperAdmin = (roleName === 'SUPER_ADMIN' || roleName === 'SUPERADMIN' || req.user?.roleId === 1) && userTenant === 1;
 
-    // Super Admin, Admin, Concierge, Operations, Staff or Personal client query -> view all clients across all tenants
-    let tenantIdToFilter = null;
-    if (!isStaffOrAdmin && !isPersonalQuery) {
-      tenantIdToFilter = req.user.tenantId || 1;
-    } else if (req.query?.tenantId) {
-      tenantIdToFilter = Number(req.query.tenantId);
+    let tenantIdToFilter = resolveTenantId(req);
+    if (isHQSuperAdmin) {
+      if (req.query?.tenantId) {
+        tenantIdToFilter = Number(req.query.tenantId);
+      } else {
+        tenantIdToFilter = null; // HQ Super Admin can view across all tenants if no specific tenant requested
+      }
     }
 
-    if (['INDIVIDUAL_CLIENT'].includes(req.user.role?.name)) {
-      req.query.id = req.user.clientId;
-    }
-
-    if (req.user.role?.name === 'SAAS_CLIENT') {
-      req.query.clientType = 'Personal';
+    if (['INDIVIDUAL_CLIENT', 'CUSTOMER'].includes(roleName)) {
+      let resolvedClientId = req.user.clientId;
+      if (!resolvedClientId) {
+        const clientRec = await prisma.client.findFirst({
+          where: {
+            OR: [
+              { email: req.user.email },
+              { companyName: req.user.name || '' }
+            ]
+          }
+        });
+        if (clientRec) resolvedClientId = clientRec.id;
+      }
+      if (resolvedClientId) {
+        req.query.id = resolvedClientId;
+      }
     }
 
     const result = await clientService.getClients(tenantIdToFilter, req.query);
-    sendResponse(res, 200, 'Clients fetched successfully', { ...result, debugTenantIdToFilter: tenantIdToFilter, debugUserRole: req.user.role, version: '100.0-FIX' });
+    sendResponse(res, 200, 'Clients fetched successfully', result);
   } catch (error) {
     next(error);
   }

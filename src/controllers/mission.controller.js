@@ -30,8 +30,7 @@ export const createMission = async (req, res, next) => {
 
 export const getMissions = async (req, res, next) => {
   try {
-    // Admins and operational staff see all missions across tenants
-    const tenantIdToFilter = null;
+    const tenantIdToFilter = resolveTenantIdForOperations(req);
 
     const result = await missionService.getMissions(tenantIdToFilter, req.query);
     sendResponse(res, 200, 'Missions fetched successfully', result);

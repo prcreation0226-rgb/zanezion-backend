@@ -122,10 +122,7 @@ export const findAllOrders = async (tenantId, query) => {
       OR: [
         { orderType: orderType },
         { orderType: String(orderType).toLowerCase() },
-        { orderType: String(orderType).toUpperCase() },
-        { orderType: 'CHAUFFEUR' },
-        { orderType: 'Chauffeur' },
-        { orderType: 'chauffeur' }
+        { orderType: String(orderType).toUpperCase() }
       ]
     })
   };
@@ -194,15 +191,15 @@ export const findAllOrders = async (tenantId, query) => {
   if (isCustomerFilter) {
     const filterClientId = clientId ? String(clientId) : null;
     const filterUserId = user_id ? String(user_id) : null;
-    const filterEmail = customer_email ? String(customer_email).toLowerCase() : null;
+    const filterEmail = customer_email ? String(customer_email).toLowerCase().trim() : null;
 
     mappedOrders = mappedOrders.filter(o => {
       const oClientId = String(o.clientId || o.client_id || '');
-      const oUserId = String(o.customer_id || o.created_by || o.createdById || o.userId || o.user_id || o.metadata?.userId || o.metadata?.user_id || o.metadata?.created_by || '');
-      const oEmail = String(o.email || o.client_email || o.customer_email || o.metadata?.email || o.metadata?.user_email || o.metadata?.customer_email || '').toLowerCase();
+      const oUserId = String(o.customer_id || o.created_by || o.createdById || o.userId || o.user_id || o.metadata?.userId || o.metadata?.user_id || o.metadata?.customer_id || o.metadata?.created_by || '');
+      const oEmail = String(o.email || o.client_email || o.customer_email || o.metadata?.email || o.metadata?.user_email || o.metadata?.customer_email || '').toLowerCase().trim();
 
-      if (filterClientId && oClientId === filterClientId) return true;
-      if (filterUserId && (oUserId === filterUserId || oClientId === filterUserId)) return true;
+      if (filterUserId && oUserId && oUserId === filterUserId) return true;
+      if (filterClientId && oClientId && oClientId === filterClientId) return true;
       if (filterEmail && oEmail && oEmail === filterEmail) return true;
 
       return false;

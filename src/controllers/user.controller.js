@@ -46,13 +46,7 @@ export const createUser = async (req, res, next) => {
 
 export const getUsers = async (req, res, next) => {
   try {
-    const isClient = ['BUSINESS_CLIENT', 'INDIVIDUAL_CLIENT'].includes(req.user.role?.name);
-    
-    let tenantIdToFilter = resolveTenantId(req);
-
-    if (isClient) {
-      tenantIdToFilter = 1;
-    }
+    const tenantIdToFilter = resolveTenantId(req);
 
     const result = await userService.getUsers(tenantIdToFilter, req.query);
     sendResponse(res, 200, 'Users fetched successfully', result);
@@ -65,10 +59,11 @@ export const getCustomers = async (req, res, next) => {
   try {
     const rawRole = typeof req.user?.role === 'string' ? req.user.role : (req.user?.role?.name || req.user?.roleName || '');
     const roleName = String(rawRole).toUpperCase();
-    const isStaffOrAdmin = ['SUPER_ADMIN', 'ADMIN', 'CONCIERGE', 'OPERATIONS', 'PROCUREMENT', 'LOGISTICS', 'STAFF'].includes(roleName) || roleName.includes('CONCIERGE') || roleName.includes('ADMIN') || roleName.includes('STAFF');
+    const userTenant = req.user?.tenantId ? Number(req.user.tenantId) : 1;
+    const isHQStaff = ['SUPER_ADMIN', 'SUPERADMIN', 'CONCIERGE', 'OPERATIONS', 'PROCUREMENT', 'LOGISTICS', 'STAFF'].includes(roleName) && userTenant === 1;
 
     let tenantIdToFilter = resolveTenantId(req);
-    if (isStaffOrAdmin || req.query.include_all || req.query.include_client_role) {
+    if (isHQStaff && (req.query.include_all || req.query.include_client_role)) {
       tenantIdToFilter = null;
     }
 
@@ -77,7 +72,7 @@ export const getCustomers = async (req, res, next) => {
       query.roleName = 'BUSINESS_CLIENT';
     }
 
-    if (['BUSINESS_CLIENT', 'INDIVIDUAL_CLIENT'].includes(req.user.role?.name)) {
+    if (['BUSINESS_CLIENT', 'INDIVIDUAL_CLIENT'].includes(roleName)) {
       query.clientId = req.user.clientId;
     }
 

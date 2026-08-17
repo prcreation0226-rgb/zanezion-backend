@@ -165,6 +165,7 @@ export const createOrder = async (data, performerId, tenantId) => {
   );
 
   const isChauffeurOrder = String(orderData.orderType || data.type || '').toUpperCase() === 'CHAUFFEUR';
+  const isMarketplaceOrder = ['MARKETPLACE', 'MARKET_ORDER', 'CUSTOM', 'PURCHASE'].includes(String(orderData.orderType || data.type || '').toUpperCase());
   if (isChauffeurOrder) {
     const sType = data.serviceType || existingMeta.serviceType || 'One Way';
     const days = parseInt(data.numberOfDays || data.dailyDays || existingMeta.numberOfDays || existingMeta.dailyDays || 1, 10) || 1;

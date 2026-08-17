@@ -5,63 +5,61 @@
  *  - Super Admin (tenantId=1) → sees ONLY their own HQ data (tenantId=1)
  *    UNLESS they explicitly pass ?tenantId=X to drill into a specific tenant.
  *  - Everyone else → always filtered by their own req.user.tenantId.
- *
- * Usage in any controller:
- *   import { resolveTenantId } from '../utils/tenantResolver.js';
- *   const tenantId = resolveTenantId(req);
  */
 export const resolveTenantId = (req) => {
-  const isSuperAdmin = req.user?.role?.name === 'SUPER_ADMIN';
+  const roleName = String(typeof req.user?.role === 'string' ? req.user.role : (req.user?.role?.name || '')).toUpperCase();
+  const isSuperAdmin = roleName === 'SUPER_ADMIN' || roleName === 'SUPERADMIN' || req.user?.roleId === 1;
 
   if (isSuperAdmin) {
-    // If Super Admin explicitly passes ?tenantId=X, use that (for tenant drill-down)
     if (req.query?.tenantId) {
       return Number(req.query.tenantId);
     }
-    // Otherwise, default to their own HQ tenant
     return req.user?.tenantId || 1;
   }
 
-  // All other roles (including tenant-level ADMIN): strictly their own tenant
+  // All other roles: strictly their own tenant
   return req.user?.tenantId || 1;
 };
 
 /**
  * Special resolver for SaaS management endpoints where Super Admin
  * NEEDS to see all tenants (e.g., SaaS Clients list, Subscriptions, Plans).
- * Returns null to skip tenant filtering.
+ * Returns null ONLY for Super Admin.
  */
 export const resolveTenantIdForSaasManagement = (req) => {
-  const rawRole = typeof req.user?.role === 'string' ? req.user.role : (req.user?.role?.name || req.user?.roleName || '');
-  const roleName = String(rawRole).toUpperCase();
-  const isManagementRole = ['SUPER_ADMIN', 'ADMIN'].includes(roleName);
+  const roleName = String(typeof req.user?.role === 'string' ? req.user.role : (req.user?.role?.name || '')).toUpperCase();
+  const isSuperAdmin = roleName === 'SUPER_ADMIN' || roleName === 'SUPERADMIN' || req.user?.roleId === 1;
 
-  if (isManagementRole) {
-    // If explicitly filtering by tenant, use that
+  if (isSuperAdmin) {
     if (req.query?.tenantId) {
       return Number(req.query.tenantId);
     }
-    // null = no filter = see all tenants (for SaaS management and Normal Clients)
     return null;
   }
 
   return req.user?.tenantId || 1;
 };
 
+/**
+ * Special resolver for operational routes (Deliveries, Missions, etc.).
+ * ONLY HQ Staff / Super Admin (under tenantId: 1) have cross-tenant operational management.
+ * All client accounts (SAAS_CLIENT, BUSINESS_CLIENT, CUSTOMER) and non-HQ tenant accounts
+ * are strictly isolated to their own tenantId.
+ */
 export const resolveTenantIdForOperations = (req) => {
-  const rawRole = typeof req.user?.role === 'string' ? req.user.role : (req.user?.role?.name || req.user?.roleName || '');
-  const roleName = String(rawRole).toUpperCase();
-  const isOperationalStaff = [
-    'SUPER_ADMIN', 'SUPERADMIN', 'ADMIN', 'LOGISTICS', 'OPERATIONS', 'STAFF', 'FIELD_STAFF', 'CONCIERGE', 'SECURITY', 'DRIVER', 'INVENTORY', 'PROCUREMENT', 'SAAS_CLIENT', 'BUSINESS_CLIENT'
-  ].includes(roleName);
+  const roleName = String(typeof req.user?.role === 'string' ? req.user.role : (req.user?.role?.name || '')).toUpperCase();
+  const userTenant = req.user?.tenantId ? Number(req.user.tenantId) : 1;
+  const isHQStaff = [
+    'SUPER_ADMIN', 'SUPERADMIN', 'LOGISTICS', 'OPERATIONS', 'STAFF', 'FIELD_STAFF', 'CONCIERGE', 'SECURITY', 'DRIVER', 'ADMIN'
+  ].includes(roleName) && userTenant === 1;
 
-  if (isOperationalStaff) {
+  if (isHQStaff) {
     if (req.query?.tenantId) {
       return Number(req.query.tenantId);
     }
-    return null; // Cross-tenant visibility for central operational and portal management staff
+    return null; // Cross-tenant visibility for central HQ operational management
   }
 
-  // Fallback to standard tenant resolution
+  // All tenant accounts, SaaS clients, Business clients, and Customers: strictly their own tenant
   return resolveTenantId(req);
 };

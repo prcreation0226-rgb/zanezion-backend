@@ -21,8 +21,15 @@ export const loginUser = async (email, password, tenantId, ipAddress, userAgent)
 
   // Attach client info
   if (user.tenantId) {
-    let client = await prisma.client.findFirst({ where: { email: user.email } });
-    if (!client) {
+    let client = await prisma.client.findFirst({
+      where: {
+        OR: [
+          { email: user.email },
+          { companyName: user.name }
+        ]
+      }
+    });
+    if (!client && user.tenantId !== 1) {
       client = await prisma.client.findFirst({ where: { tenantId: user.tenantId } });
     }
     if (client) {
@@ -145,8 +152,15 @@ export const getProfile = async (userId) => {
 
   // Attach client info
   if (user.tenantId) {
-    let client = await prisma.client.findFirst({ where: { email: user.email } });
-    if (!client) {
+    let client = await prisma.client.findFirst({
+      where: {
+        OR: [
+          { email: user.email },
+          { companyName: user.name }
+        ]
+      }
+    });
+    if (!client && user.tenantId !== 1) {
       client = await prisma.client.findFirst({ where: { tenantId: user.tenantId } });
     }
     if (client) {

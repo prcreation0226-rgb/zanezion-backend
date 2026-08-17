@@ -59,8 +59,16 @@ export const authenticate = async (req, res, next) => {
       return sendResponse(res, 401, 'User no longer exists');
     }
 
-    let client = await prisma.client.findFirst({ where: { email: user.email } });
-    if (!client && user.tenantId) {
+    let client = await prisma.client.findFirst({
+      where: {
+        OR: [
+          { email: user.email },
+          { companyName: user.name }
+        ]
+      }
+    });
+    if (!client && user.tenantId && user.tenantId !== 1) {
+      // Only for non-HQ dedicated tenant users
       client = await prisma.client.findFirst({ where: { tenantId: user.tenantId } });
     }
     if (client) {

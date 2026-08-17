@@ -90,13 +90,18 @@ export const getOrders = async (req, res, next) => {
   try {
     const rawRole = typeof req.user?.role === 'string' ? req.user.role : (req.user?.role?.name || req.user?.roleName || '');
     const roleName = String(rawRole).toUpperCase();
-    const isStaffOrAdmin = ['SUPER_ADMIN', 'SUPERADMIN', 'ADMIN', 'OPERATIONS', 'LOGISTICS', 'CONCIERGE', 'SAAS_CLIENT', 'BUSINESS_CLIENT', 'STAFF', 'PROCUREMENT', 'INVENTORY'].includes(roleName);
+    const userTenant = req.user?.tenantId ? Number(req.user.tenantId) : 1;
+    const isHQStaff = ['SUPER_ADMIN', 'SUPERADMIN', 'OPERATIONS', 'LOGISTICS', 'CONCIERGE', 'STAFF', 'PROCUREMENT', 'INVENTORY'].includes(roleName) && userTenant === 1;
+    const isCustomerRole = ['INDIVIDUAL_CLIENT', 'CUSTOMER'].includes(roleName);
+    const isClientRole = ['BUSINESS_CLIENT', 'CLIENT', 'SAAS_CLIENT'].includes(roleName);
 
     const rawOrderType = String(req.query.orderType || '').toUpperCase();
     const isOperationalQuery = ['CHAUFFEUR', 'DELIVERY', 'SERVICE', 'LOGISTICS', 'MISSION'].includes(rawOrderType);
-    const tenantIdToFilter = (isOperationalQuery || isStaffOrAdmin) ? null : resolveTenantId(req);
+    
+    // Cross-tenant queries ONLY allowed for HQ Central Staff on operational queries or Super Admin drill-down
+    const tenantIdToFilter = (isHQStaff && isOperationalQuery) ? null : resolveTenantId(req);
 
-    if (['INDIVIDUAL_CLIENT', 'CUSTOMER'].includes(roleName)) {
+    if (isCustomerRole) {
       let resolvedClientId = req.user.clientId;
       if (!resolvedClientId) {
         const clientRec = await prisma.client.findFirst({
@@ -109,8 +114,25 @@ export const getOrders = async (req, res, next) => {
         });
         if (clientRec) resolvedClientId = clientRec.id;
       }
+      // Always enforce user-scoped filtering for customer accounts
       req.query.user_id = req.user.id;
       req.query.customer_email = req.user.email;
+      if (resolvedClientId) {
+        req.query.clientId = resolvedClientId;
+      }
+    } else if (isClientRole) {
+      let resolvedClientId = req.user.clientId;
+      if (!resolvedClientId) {
+        const clientRec = await prisma.client.findFirst({
+          where: {
+            OR: [
+              { email: req.user.email },
+              { companyName: req.user.name || '' }
+            ]
+          }
+        });
+        if (clientRec) resolvedClientId = clientRec.id;
+      }
       if (resolvedClientId) {
         req.query.clientId = resolvedClientId;
       }
@@ -127,8 +149,9 @@ export const getOrderById = async (req, res, next) => {
   try {
     const rawRole = req.user.role?.name || req.user.role || '';
     const roleName = String(rawRole).toUpperCase();
-    const isStaffOrAdmin = ['SUPER_ADMIN', 'ADMIN', 'OPERATIONS', 'LOGISTICS', 'CONCIERGE', 'SAAS_CLIENT', 'BUSINESS_CLIENT', 'STAFF'].includes(roleName);
-    const tenantIdToFilter = isStaffOrAdmin ? null : resolveTenantId(req);
+    const userTenant = req.user?.tenantId ? Number(req.user.tenantId) : 1;
+    const isHQStaff = ['SUPER_ADMIN', 'SUPERADMIN', 'OPERATIONS', 'LOGISTICS', 'CONCIERGE', 'STAFF'].includes(roleName) && userTenant === 1;
+    const tenantIdToFilter = isHQStaff ? null : resolveTenantId(req);
 
     const order = await orderService.getOrderById(Number(req.params.id), tenantIdToFilter);
     sendResponse(res, 200, 'Order fetched successfully', order);

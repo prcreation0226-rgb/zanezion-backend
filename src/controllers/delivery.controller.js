@@ -20,10 +20,42 @@ export const createDelivery = async (req, res, next) => {
 export const getDeliveries = async (req, res, next) => {
   try {
     const tenantIdToFilter = resolveTenantIdForOperations(req);
-    const roleName = req.user.role?.name?.toUpperCase();
+    const roleName = String(req.user.role?.name || req.user.role || '').toUpperCase();
 
     if (['INDIVIDUAL_CLIENT', 'CUSTOMER'].includes(roleName)) {
-      req.query.clientId = req.user.clientId;
+      let resolvedClientId = req.user.clientId;
+      if (!resolvedClientId) {
+        const clientRec = await prisma.client.findFirst({
+          where: {
+            OR: [
+              { email: req.user.email },
+              { companyName: req.user.name || '' }
+            ]
+          }
+        });
+        if (clientRec) resolvedClientId = clientRec.id;
+      }
+      if (resolvedClientId) {
+        req.query.clientId = resolvedClientId;
+      } else {
+        req.query.clientId = -1; // Unlinked customer has 0 deliveries
+      }
+    } else if (['BUSINESS_CLIENT', 'CLIENT', 'SAAS_CLIENT'].includes(roleName)) {
+      let resolvedClientId = req.user.clientId;
+      if (!resolvedClientId) {
+        const clientRec = await prisma.client.findFirst({
+          where: {
+            OR: [
+              { email: req.user.email },
+              { companyName: req.user.name || '' }
+            ]
+          }
+        });
+        if (clientRec) resolvedClientId = clientRec.id;
+      }
+      if (resolvedClientId) {
+        req.query.clientId = resolvedClientId;
+      }
     }
 
     const result = await deliveryService.getDeliveries(tenantIdToFilter, req.query);
@@ -36,8 +68,8 @@ export const getDeliveries = async (req, res, next) => {
 export const getDeliveryById = async (req, res, next) => {
   try {
     const tenantIdToFilter = resolveTenantIdForOperations(req);
-    const roleName = req.user.role?.name?.toUpperCase();
-    const clientIdToFilter = ['INDIVIDUAL_CLIENT', 'CUSTOMER'].includes(roleName) ? req.user.clientId : null;
+    const roleName = String(req.user.role?.name || req.user.role || '').toUpperCase();
+    const clientIdToFilter = ['INDIVIDUAL_CLIENT', 'CUSTOMER', 'BUSINESS_CLIENT', 'CLIENT', 'SAAS_CLIENT'].includes(roleName) ? req.user.clientId : null;
 
     const delivery = await deliveryService.getDeliveryById(Number(req.params.id), tenantIdToFilter, clientIdToFilter);
     sendResponse(res, 200, 'Delivery fetched successfully', delivery);
