@@ -31,8 +31,17 @@ export const createDelivery = async (data, items, tenantId, tx = null) => {
     delete parsedData.dueDate;
   }
 
-  // Filter out undefined items
-  const validItems = Array.isArray(items) ? items : [];
+  // Clean non-model fields and relational fields from parsedData
+  delete parsedData.items;
+  delete parsedData.tenantId;
+  delete parsedData.deliveryNumber;
+
+  // Filter out items that cannot be created as DeliveryItem (must have valid integer itemId and orderItemId)
+  const validItems = (Array.isArray(items) ? items : []).filter(
+    it => it && 
+          Number.isInteger(Number(it.itemId)) && Number(it.itemId) > 0 &&
+          Number.isInteger(Number(it.orderItemId)) && Number(it.orderItemId) > 0
+  );
 
   return await clientToUse.delivery.create({
     data: {
@@ -41,8 +50,10 @@ export const createDelivery = async (data, items, tenantId, tx = null) => {
       tenantId: resolvedTenantId,
       items: validItems.length > 0 ? {
         create: validItems.map(item => ({
-          ...item,
-          tenantId: resolvedTenantId
+          tenant: { connect: { id: resolvedTenantId } },
+          orderItem: { connect: { id: Number(item.orderItemId) } },
+          item: { connect: { id: Number(item.itemId) } },
+          quantity: Number(item.quantity) || 1
         }))
       } : undefined
     },
@@ -104,11 +115,26 @@ export const updateDeliveryStatus = async (tx, id, status, extraData = {}) => {
     data: { status, ...extraData }
   });
 
-  if (status === 'delivered' && updatedDelivery.orderId) {
-    await tx.order.update({
-      where: { id: updatedDelivery.orderId },
-      data: { status: 'completed' }
-    });
+  if (updatedDelivery.orderId) {
+    const norm = String(status || '').toLowerCase().replace(/\s+/g, '_');
+    let orderStatus = null;
+    if (['delivered', 'completed', 'done'].includes(norm)) {
+      orderStatus = 'completed';
+    } else if (['in_transit', 'out_for_delivery', 'en_route', 'dispatched'].includes(norm)) {
+      orderStatus = 'in_transit';
+    } else if (['assigned', 'accepted'].includes(norm)) {
+      orderStatus = 'assigned';
+    } else if (['cancelled', 'rejected', 'failed'].includes(norm)) {
+      orderStatus = 'cancelled';
+    }
+    if (orderStatus) {
+      try {
+        await tx.order.update({
+          where: { id: updatedDelivery.orderId },
+          data: { status: orderStatus }
+        });
+      } catch (_) {}
+    }
   }
 
   return updatedDelivery;
@@ -140,11 +166,26 @@ export const updateDelivery = async (id, data) => {
     include: { items: true, client: true, order: true }
   });
 
-  if (parsedData.status === 'delivered' && updatedDelivery.orderId) {
-    await prisma.order.update({
-      where: { id: updatedDelivery.orderId },
-      data: { status: 'completed' }
-    });
+  if (updatedDelivery.orderId && parsedData.status) {
+    const norm = String(parsedData.status || '').toLowerCase().replace(/\s+/g, '_');
+    let orderStatus = null;
+    if (['delivered', 'completed', 'done'].includes(norm)) {
+      orderStatus = 'completed';
+    } else if (['in_transit', 'out_for_delivery', 'en_route', 'dispatched'].includes(norm)) {
+      orderStatus = 'in_transit';
+    } else if (['assigned', 'accepted'].includes(norm)) {
+      orderStatus = 'assigned';
+    } else if (['cancelled', 'rejected', 'failed'].includes(norm)) {
+      orderStatus = 'cancelled';
+    }
+    if (orderStatus) {
+      try {
+        await prisma.order.update({
+          where: { id: updatedDelivery.orderId },
+          data: { status: orderStatus }
+        });
+      } catch (_) {}
+    }
   }
 
   return updatedDelivery;

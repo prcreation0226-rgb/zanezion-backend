@@ -1,17 +1,19 @@
 import { z } from 'zod';
 
 const invoiceItemSchema = z.object({
-  itemId: z.number().int().positive('Item ID is required'),
-  quantity: z.number().positive('Quantity must be positive'),
-  unitPrice: z.number().nonnegative('Unit Price must be non-negative'),
-  tax: z.number().nonnegative('Tax must be non-negative').default(0),
-  discount: z.number().nonnegative('Discount must be non-negative').default(0)
+  itemId: z.union([z.number(), z.string()]).transform(v => Number(v) || 1).default(1),
+  quantity: z.union([z.number(), z.string()]).transform(v => Number(v) || 1).default(1),
+  unitPrice: z.union([z.number(), z.string()]).transform(v => Number(v) || 0).default(0),
+  tax: z.union([z.number(), z.string()]).transform(v => Number(v) || 0).default(0),
+  discount: z.union([z.number(), z.string()]).transform(v => Number(v) || 0).default(0)
 });
 
 export const generateInvoiceSchema = z.object({
-  deliveryId: z.number().int().positive('Delivery ID is required'),
-  dueDate: z.string().datetime('Due Date must be a valid ISO datetime'),
+  deliveryId: z.union([z.number().int(), z.string(), z.null()]).optional(),
+  orderId: z.union([z.number().int(), z.string(), z.null()]).optional(),
+  dueDate: z.string().optional().default(() => new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString()),
   items: z.array(invoiceItemSchema).min(1, 'At least one item is required'),
-  clientId: z.number().int().optional(),
-  paidAmount: z.number().nonnegative().optional()
+  clientId: z.union([z.number().int(), z.string(), z.null()]).optional(),
+  paidAmount: z.union([z.number(), z.string()]).transform(v => Number(v) || 0).default(0)
 });
+

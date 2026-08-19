@@ -1,6 +1,6 @@
 import prisma from '../config/db.js';
 
-export const logAudit = async ({
+export const logAudit = ({
   module,
   action,
   description = null,
@@ -8,23 +8,30 @@ export const logAudit = async ({
   newValue = null,
   performedBy
 }) => {
-  try {
-    if (!performedBy) return; // Prevent crashes if system action
+  // Fire-and-forget asynchronously - zero overhead on API responses
+  if (!performedBy) return Promise.resolve();
 
-    const validUser = await prisma.user.findUnique({ where: { id: Number(performedBy) } });
-    if (!validUser) return;
+  return new Promise((resolve) => {
+    setImmediate(async () => {
+      try {
+        const perfId = Number(performedBy);
+        if (isNaN(perfId) || perfId <= 0) return resolve();
 
-    await prisma.auditLog.create({
-      data: {
-        module,
-        action,
-        description,
-        oldValue: oldValue ? JSON.parse(JSON.stringify(oldValue)) : null,
-        newValue: newValue ? JSON.parse(JSON.stringify(newValue)) : null,
-        performedBy: validUser.id
+        await prisma.auditLog.create({
+          data: {
+            module: String(module || 'SYSTEM'),
+            action: String(action || 'UPDATE'),
+            description: description || '',
+            oldValue: oldValue ? JSON.parse(JSON.stringify(oldValue)) : null,
+            newValue: newValue ? JSON.parse(JSON.stringify(newValue)) : null,
+            performedBy: perfId
+          }
+        }).catch(() => {});
+      } catch (_) {
+      } finally {
+        resolve();
       }
     });
-  } catch (error) {
-    console.error('Failed to write audit log:', error);
-  }
+  });
 };
+

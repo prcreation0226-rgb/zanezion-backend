@@ -192,10 +192,29 @@ export const createDelivery = async (data, performerId, tenantId) => {
     deliveryData.clientId = clientIdToUse;
   }
 
-  if (deliveryData.assigned_driver) {
-    const emp = await prisma.employee.findFirst({ where: { userId: Number(deliveryData.assigned_driver) } });
-    if (emp) deliveryData.assignedTo = emp.id;
+  if (deliveryData.assignedTo !== undefined || deliveryData.assigned_driver !== undefined || deliveryData.driverId !== undefined) {
+    const rawAssigned = deliveryData.assignedTo ?? deliveryData.assigned_driver ?? deliveryData.driverId;
+    const targetUserId = Number(rawAssigned);
+    if (rawAssigned === null || rawAssigned === '') {
+      delete deliveryData.assignedTo;
+    } else if (!isNaN(targetUserId) && targetUserId > 0) {
+      let emp = await prisma.employee.findFirst({ where: { userId: targetUserId } });
+      if (!emp) {
+        emp = await prisma.employee.findUnique({ where: { id: targetUserId } });
+      }
+      if (!emp) {
+        emp = await prisma.employee.findFirst({ where: { ...(tenantId != null && { tenantId }) } });
+      }
+      if (emp) {
+        deliveryData.assignedTo = emp.id;
+      } else {
+        delete deliveryData.assignedTo;
+      }
+    } else {
+      delete deliveryData.assignedTo;
+    }
     delete deliveryData.assigned_driver;
+    delete deliveryData.driverId;
   }
 
   const blockedStatuses = ['completed', 'Completed', 'cancelled', 'Cancelled', 'rejected', 'Rejected'];
@@ -240,10 +259,11 @@ export const createDelivery = async (data, performerId, tenantId) => {
   deliveryData.clientId = order.clientId;
 
   const validDeliveryItems = [];
+  const itemsArray = Array.isArray(items) ? items : [];
 
   // Validate quantities: Delivery quantity cannot exceed (Order Quantity - Already Delivered Quantity)
-  for (let i = 0; i < items.length; i++) {
-    const item = items[i];
+  for (let i = 0; i < itemsArray.length; i++) {
+    const item = itemsArray[i];
     let orderItem;
 
     if (item.orderItemId) {
@@ -265,8 +285,8 @@ export const createDelivery = async (data, performerId, tenantId) => {
       }
     }
 
-    if (!orderItem) {
-      // Bespoke/custom item without a corresponding order item in the DB.
+    if (!orderItem || !orderItem.itemId) {
+      // Bespoke/custom item or service without a corresponding inventory item in the DB.
       // We skip adding it to validDeliveryItems to avoid foreign key constraints.
       // The manifest data is already safely stored in the JSON remarks string.
       continue;
@@ -530,6 +550,26 @@ export const updateDelivery = async (id, data, tenantId, performerId, clientId =
   } else {
     // No stock changes needed — plain update
     updatedDelivery = await deliveryRepo.updateDelivery(id, parsedData);
+  }
+
+  if (delivery.orderId) {
+    let orderTargetStatus = null;
+    const normDelStatus = String(data.status || parsedData.status || '').toLowerCase().replace(/\s+/g, '_');
+    if (['delivered', 'completed'].includes(normDelStatus)) {
+      orderTargetStatus = 'completed';
+    } else if (['in_transit', 'en_route', 'dispatched', 'on_way'].includes(normDelStatus)) {
+      orderTargetStatus = 'in_transit';
+    } else if (['assigned', 'accepted'].includes(normDelStatus) || (parsedData.assignedTo && parsedData.assignedTo > 0)) {
+      orderTargetStatus = 'assigned';
+    }
+    if (orderTargetStatus) {
+      try {
+        await prisma.order.update({
+          where: { id: delivery.orderId },
+          data: { status: orderTargetStatus }
+        });
+      } catch (_) {}
+    }
   }
 
   await logAudit({

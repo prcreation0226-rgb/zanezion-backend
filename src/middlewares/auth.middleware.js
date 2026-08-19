@@ -39,6 +39,16 @@ const MENU_NAME_MAPPING = {
   'PAYROLL': 'Payroll'
 };
 
+// Fast In-Memory User & RBAC Cache (45-second TTL) to eliminate repetitive overseas DB round-trips
+const userCache = new Map();
+const roleMenuCache = new Map();
+const CACHE_TTL_MS = 45000;
+
+export const clearAuthCache = () => {
+  userCache.clear();
+  roleMenuCache.clear();
+};
+
 export const authenticate = async (req, res, next) => {
   try {
     const token = req.headers.authorization?.split(' ')[1];
@@ -49,13 +59,21 @@ export const authenticate = async (req, res, next) => {
 
     const decoded = jwt.verify(token, config.jwtSecret);
 
-    // Verify user exists and fetch role
+    // Check fast cache first
+    const cached = userCache.get(decoded.id);
+    if (cached && (Date.now() - cached.timestamp < CACHE_TTL_MS)) {
+      req.user = cached.user;
+      return next();
+    }
+
+    // Verify user exists and fetch role from DB
     const user = await prisma.user.findFirst({
       where: { id: decoded.id, deletedAt: null },
       include: { role: true }
     });
 
     if (!user) {
+      userCache.delete(decoded.id);
       return sendResponse(res, 401, 'User no longer exists');
     }
 
@@ -76,6 +94,7 @@ export const authenticate = async (req, res, next) => {
       user.company_id = client.id;
     }
 
+    userCache.set(decoded.id, { user, timestamp: Date.now() });
     req.user = user;
     next();
   } catch (error) {
@@ -168,12 +187,21 @@ export const checkPermission = (routeIdentifier, action) => {
       let hasAccess = false;
 
       if (mappedMenuName) {
-        const roleMenu = await prisma.roleMenu.findFirst({
-          where: {
-            roleId,
-            menu: { name: mappedMenuName }
-          }
-        });
+        const cacheKey = `${roleId}_${mappedMenuName}`;
+        const cachedRM = roleMenuCache.get(cacheKey);
+        let roleMenu = null;
+
+        if (cachedRM && (Date.now() - cachedRM.timestamp < CACHE_TTL_MS)) {
+          roleMenu = cachedRM.data;
+        } else {
+          roleMenu = await prisma.roleMenu.findFirst({
+            where: {
+              roleId,
+              menu: { name: mappedMenuName }
+            }
+          });
+          roleMenuCache.set(cacheKey, { data: roleMenu, timestamp: Date.now() });
+        }
 
         if (roleMenu) {
           switch (action) {

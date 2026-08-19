@@ -91,15 +91,12 @@ export const getOrders = async (req, res, next) => {
     const rawRole = typeof req.user?.role === 'string' ? req.user.role : (req.user?.role?.name || req.user?.roleName || '');
     const roleName = String(rawRole).toUpperCase();
     const userTenant = req.user?.tenantId ? Number(req.user.tenantId) : 1;
-    const isHQStaff = ['SUPER_ADMIN', 'SUPERADMIN', 'OPERATIONS', 'LOGISTICS', 'CONCIERGE', 'STAFF', 'PROCUREMENT', 'INVENTORY'].includes(roleName) && userTenant === 1;
+    const isHQStaff = ['SUPER_ADMIN', 'SUPERADMIN', 'ADMIN', 'OPERATIONS', 'LOGISTICS', 'CONCIERGE', 'STAFF', 'PROCUREMENT', 'INVENTORY'].includes(roleName) && userTenant === 1;
     const isCustomerRole = ['INDIVIDUAL_CLIENT', 'CUSTOMER'].includes(roleName);
     const isClientRole = ['BUSINESS_CLIENT', 'CLIENT', 'SAAS_CLIENT'].includes(roleName);
 
-    const rawOrderType = String(req.query.orderType || '').toUpperCase();
-    const isOperationalQuery = ['CHAUFFEUR', 'DELIVERY', 'SERVICE', 'LOGISTICS', 'MISSION'].includes(rawOrderType);
-    
-    // Cross-tenant queries ONLY allowed for HQ Central Staff on operational queries or Super Admin drill-down
-    const tenantIdToFilter = (isHQStaff && isOperationalQuery) ? null : resolveTenantId(req);
+    // HQ Staff and Admin on tenant 1 have central cross-tenant visibility unless drilling down via ?tenantId=
+    const tenantIdToFilter = isHQStaff ? (req.query.tenantId ? Number(req.query.tenantId) : null) : resolveTenantId(req);
 
     if (isCustomerRole) {
       let resolvedClientId = req.user.clientId;
@@ -150,8 +147,8 @@ export const getOrderById = async (req, res, next) => {
     const rawRole = req.user.role?.name || req.user.role || '';
     const roleName = String(rawRole).toUpperCase();
     const userTenant = req.user?.tenantId ? Number(req.user.tenantId) : 1;
-    const isHQStaff = ['SUPER_ADMIN', 'SUPERADMIN', 'OPERATIONS', 'LOGISTICS', 'CONCIERGE', 'STAFF'].includes(roleName) && userTenant === 1;
-    const tenantIdToFilter = isHQStaff ? null : resolveTenantId(req);
+    const isHQStaff = ['SUPER_ADMIN', 'SUPERADMIN', 'ADMIN', 'OPERATIONS', 'LOGISTICS', 'CONCIERGE', 'STAFF', 'PROCUREMENT', 'INVENTORY'].includes(roleName) && userTenant === 1;
+    const tenantIdToFilter = isHQStaff ? (req.query.tenantId ? Number(req.query.tenantId) : null) : resolveTenantId(req);
 
     const order = await orderService.getOrderById(Number(req.params.id), tenantIdToFilter);
     sendResponse(res, 200, 'Order fetched successfully', order);

@@ -187,26 +187,37 @@ export const createOrder = async (data, performerId, tenantId) => {
 
   const metaCustomItems = Array.isArray(existingMeta.customItems) ? existingMeta.customItems : [];
   const itemsToSave = customItems.length > 0 ? customItems : (items || []);
+  const customItem = (customItems && customItems[0]) || (items && items[0]) || (existingMeta && existingMeta.customItems && existingMeta.customItems[0]) || {};
 
   // Determine client name fallback for guestName / passengerName if not explicitly provided
   const resolvedClientName = client ? (client.companyName || client.contactPerson || client.name) : (orderData.clientName || 'Guest Client');
-  const rawPassengerName = data.passengerName || data.passenger_name || data.guestName || data.guest_name || existingMeta.passengerName || existingMeta.guestName;
-  const passengerName = (rawPassengerName && String(rawPassengerName).trim()) ? String(rawPassengerName).trim() : resolvedClientName;
+  const rawPassengerName = data.passengerName || data.passenger_name || data.guestName || data.guest_name || customItem.passengerName || customItem.passenger_name || customItem.guestName || customItem.guest_name || existingMeta.passengerName || existingMeta.guestName;
+  const passengerName = (rawPassengerName && String(rawPassengerName).trim() && String(rawPassengerName).toLowerCase() !== 'personal client')
+    ? String(rawPassengerName).trim()
+    : (resolvedClientName && resolvedClientName.toLowerCase() !== 'personal client' ? resolvedClientName : (customItem.passengerName || customItem.guestName || rawPassengerName || resolvedClientName));
 
-  const numberOfPassengers = Number(data.numberOfPassengers || data.passengers || data.passengerCount || existingMeta.numberOfPassengers || existingMeta.passengers || 1);
-  const rawAmenities = data.amenities || existingMeta.amenities || [];
+  const numberOfPassengers = Number(data.numberOfPassengers || data.passengers || data.passengerCount || customItem.numberOfPassengers || customItem.passengers || customItem.passengerCount || existingMeta.numberOfPassengers || existingMeta.passengers || 1);
+  const rawAmenities = data.amenities || customItem.amenities || existingMeta.amenities || [];
   const amenitiesArray = Array.isArray(rawAmenities)
     ? rawAmenities
     : (typeof rawAmenities === 'string' && rawAmenities.trim() ? rawAmenities.split(',').map(s => s.trim()) : []);
 
   const amenitiesLower = amenitiesArray.map(a => String(a).toLowerCase());
-  const wifi = data.wifi || existingMeta.wifi || (amenitiesLower.some(a => a.includes('wifi')) ? 'Yes' : 'No');
-  const refreshments = data.refreshments || existingMeta.refreshments || (amenitiesLower.some(a => a.includes('refreshment')) ? 'Yes' : 'No');
-  const carSeat = data.carSeat || data.car_seat || existingMeta.carSeat || (amenitiesLower.some(a => a.includes('car seat') || a.includes('baby')) ? 'Yes' : 'No');
-  const stops = data.stops || existingMeta.stops || 'No';
-  const stopLocations = data.stopLocations || data.stop_locations || existingMeta.stopLocations || null;
-  const luggage = data.luggage || existingMeta.luggage || 'No';
-  const bags = data.bags !== undefined ? data.bags : (existingMeta.bags || 0);
+  const wifi = (data.wifi === 'Yes' || customItem.wifi === 'Yes' || existingMeta.wifi === 'Yes' || amenitiesLower.some(a => a.includes('wifi'))) ? 'Yes' : 'No';
+  const refreshments = (data.refreshments === 'Yes' || customItem.refreshments === 'Yes' || existingMeta.refreshments === 'Yes' || amenitiesLower.some(a => a.includes('refreshment'))) ? 'Yes' : 'No';
+  const carSeat = (data.carSeat === 'Yes' || data.car_seat === 'Yes' || customItem.carSeat === 'Yes' || customItem.car_seat === 'Yes' || existingMeta.carSeat === 'Yes' || existingMeta.car_seat === 'Yes' || amenitiesLower.some(a => a.includes('car seat') || a.includes('baby'))) ? 'Yes' : 'No';
+  const stops = data.stops || customItem.stops || existingMeta.stops || 'No';
+  const stopLocations = data.stopLocations || data.stop_locations || customItem.stopLocations || existingMeta.stopLocations || null;
+  const rawBags = Number(data.bags !== undefined ? data.bags : (customItem.bags !== undefined ? customItem.bags : (existingMeta.bags !== undefined ? existingMeta.bags : 0)));
+  const luggage = (data.luggage && data.luggage !== 'No') ? data.luggage : (customItem.luggage && customItem.luggage !== 'No' ? customItem.luggage : (existingMeta.luggage && existingMeta.luggage !== 'No' ? existingMeta.luggage : (rawBags > 0 ? `Yes — ${rawBags} bag(s)` : 'No')));
+  const bags = rawBags;
+  const serviceType = data.serviceType || customItem.serviceType || existingMeta.serviceType || 'One Way';
+  const returnDate = data.returnDate || customItem.returnDate || existingMeta.returnDate || null;
+  const returnTime = data.returnTime || customItem.returnTime || existingMeta.returnTime || null;
+  const pickupTime = data.pickupTime || customItem.pickupTime || existingMeta.pickupTime || null;
+  const pickupLocation = data.pickupLocation || data.pickup_location || customItem.pickupLocation || existingMeta.pickupLocation || '';
+  const dropLocation = data.dropLocation || data.drop_location || data.location || customItem.dropLocation || existingMeta.dropLocation || '';
+  const totalDistance = data.totalDistance || data.total_distance || customItem.totalDistance || existingMeta.totalDistance || '';
 
   orderData.metadata = {
     ...existingMeta,
@@ -215,7 +226,7 @@ export const createOrder = async (data, performerId, tenantId) => {
     passengerCount: numberOfPassengers,
     passengerName,
     guestName: passengerName,
-    luggage,
+    luggage: (luggage === 'Yes' && bags > 0) ? `Yes — ${bags} bag(s)` : luggage,
     bags,
     stops,
     stopLocations,
@@ -223,6 +234,14 @@ export const createOrder = async (data, performerId, tenantId) => {
     refreshments,
     carSeat,
     amenities: amenitiesArray,
+    serviceType,
+    returnDate,
+    returnTime,
+    pickupTime,
+    pickupLocation,
+    dropLocation,
+    location: dropLocation,
+    totalDistance,
     customItems: metaCustomItems.length > 0 ? metaCustomItems : itemsToSave
   };
 
@@ -292,6 +311,7 @@ export const updateOrderStatus = async (id, status, tenantId, performerId, remar
 
   const newMetadata = {
     ...currentMeta,
+    status: String(status).toLowerCase(),
     currentDepartment: String(status).toLowerCase(),
     workflowHistory: [...existingHistory, historyEntry]
   };
@@ -317,6 +337,14 @@ export const updateOrderStatus = async (id, status, tenantId, performerId, remar
         metadata: newMetadata
       }
     });
+
+    // If order is completed/delivered, sync associated deliveries
+    if (['completed', 'delivered'].includes(String(status).toLowerCase())) {
+      await tx.delivery.updateMany({
+        where: { orderId: id },
+        data: { status: 'delivered' }
+      }).catch(() => null);
+    }
   });
 
   await logAudit({
@@ -331,9 +359,10 @@ export const updateOrderStatus = async (id, status, tenantId, performerId, remar
   const { metadata, ...rest } = updatedOrder;
   const metadataObj = typeof metadata === 'string' ? JSON.parse(metadata) : (metadata || {});
   return {
+    ...metadataObj,
     ...rest,
-    metadata: metadataObj,
-    ...metadataObj
+    status,
+    metadata: metadataObj
   };
 };
 
@@ -384,6 +413,31 @@ export const updateOrder = async (id, data, tenantId, performerId) => {
 
   if (customItems.length > 0) {
     metadataExt.customItems = customItems;
+    const c0 = customItems[0];
+    if (c0.passengerName) metadataExt.passengerName = c0.passengerName;
+    if (c0.guestName) metadataExt.guestName = c0.guestName;
+    if (c0.numberOfPassengers) {
+      metadataExt.numberOfPassengers = Number(c0.numberOfPassengers);
+      metadataExt.passengers = Number(c0.numberOfPassengers);
+      metadataExt.passengerCount = Number(c0.numberOfPassengers);
+    }
+    if (c0.wifi) metadataExt.wifi = c0.wifi;
+    if (c0.refreshments) metadataExt.refreshments = c0.refreshments;
+    if (c0.carSeat) metadataExt.carSeat = c0.carSeat;
+    if (c0.stops) metadataExt.stops = c0.stops;
+    if (c0.stopLocations) metadataExt.stopLocations = c0.stopLocations;
+    if (c0.luggage) metadataExt.luggage = c0.luggage;
+    if (c0.bags !== undefined) metadataExt.bags = c0.bags;
+    if (c0.serviceType) metadataExt.serviceType = c0.serviceType;
+    if (c0.returnDate) metadataExt.returnDate = c0.returnDate;
+    if (c0.returnTime) metadataExt.returnTime = c0.returnTime;
+    if (c0.pickupTime) metadataExt.pickupTime = c0.pickupTime;
+    if (c0.pickupLocation) metadataExt.pickupLocation = c0.pickupLocation;
+    if (c0.dropLocation || c0.location) {
+      metadataExt.dropLocation = c0.dropLocation || c0.location;
+      metadataExt.location = c0.dropLocation || c0.location;
+    }
+    if (c0.amenities) metadataExt.amenities = c0.amenities;
   }
 
   const finalMetadata = {

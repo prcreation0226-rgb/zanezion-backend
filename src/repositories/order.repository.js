@@ -83,9 +83,9 @@ export const createOrder = async (data, items, tenantId, tx = null) => {
 
   const { metadata, ...rest } = newOrder;
   return {
+    ...finalMetadata,
     ...rest,
-    metadata: finalMetadata,
-    ...finalMetadata
+    metadata: finalMetadata
   };
 };
 
@@ -102,9 +102,9 @@ export const findOrderById = async (id) => {
   const { metadata, ...rest } = order;
   const metadataObj = typeof metadata === 'string' ? JSON.parse(metadata) : (metadata || {});
   return {
+    ...metadataObj,
     ...rest,
-    metadata: metadataObj,
-    ...metadataObj
+    metadata: metadataObj
   };
 };
 
@@ -151,10 +151,10 @@ export const findAllOrders = async (tenantId, query) => {
       : (Array.isArray(metadataObj.customItems) ? metadataObj.customItems : []);
 
     return {
+      ...metadataObj,
       ...rest,
       items: itemsArr,
-      metadata: metadataObj,
-      ...metadataObj
+      metadata: metadataObj
     };
   });
 
