@@ -14,14 +14,20 @@ app.use(
       // Allow requests with no origin (e.g., curl, Postman, mobile apps)
       if (!origin) return callback(null, true);
 
+      const envOrigins = (process.env.ALLOWED_ORIGINS || process.env.FRONTEND_URL || '')
+        .split(',')
+        .map(o => o.trim())
+        .filter(Boolean);
+
       const allowedOrigins = [
         'https://zanezion.kiaansoftware.com',
+        ...envOrigins
       ];
 
       // Allow any localhost or 127.0.0.1 port for local development
       const isLocalhost = /^https?:\/\/(localhost|127\.0\.0\.1)(:\d+)?$/.test(origin);
 
-      if (isLocalhost || allowedOrigins.includes(origin)) {
+      if (isLocalhost || allowedOrigins.includes(origin) || allowedOrigins.includes('*')) {
         callback(null, true);
       } else {
         callback(new Error(`CORS: Origin '${origin}' not allowed`));
